@@ -413,7 +413,7 @@ function FactsPane({
             <button
               key={t}
               type="button"
-              onClick={() => setTrackFilter(t)}
+              onClick={() => setTrackFilter(t as TrackId)}
               className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition ${
                 trackFilter === t
                   ? "border-ink-900 bg-ink-900 text-white"

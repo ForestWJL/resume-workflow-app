@@ -111,7 +111,7 @@ export default function MemoryPage() {
     mem.metricsToVerify.filter(match).length +
     mem.doNotSaveYet.filter(match).length;
   const notesMatched = TRACK_ORDER.filter((t) =>
-    match(mem.trackNotes[t] ?? "")
+    match(mem.trackNotes[t as TrackId] ?? "")
   ).length;
 
   const factLabel = q
@@ -270,21 +270,27 @@ export default function MemoryPage() {
               </div>
             </CardHeader>
             <CardContent className="grid gap-5 md:grid-cols-2">
-              {TRACK_ORDER.filter(
-                (t) => !q || match(mem.trackNotes[t] ?? "")
-              ).map((t) => (
-                <div key={t} className="flex flex-col gap-2">
-                  <TrackBadge trackId={t} label={TRACKS[t].name} />
-                  <Textarea
-                    rows={4}
-                    value={mem.trackNotes[t] ?? ""}
-                    onChange={(e) => {
-                      const next = { ...mem.trackNotes, [t]: e.target.value };
-                      update("trackNotes", next);
-                    }}
-                  />
-                </div>
-              ))}
+  {TRACK_ORDER.filter(
+    (t) => !q || match(mem.trackNotes[t as TrackId] ?? "")
+  ).map((t) => (
+    <div key={t} className="flex flex-col gap-2">
+      <TrackBadge
+        trackId={t as TrackId}
+        label={TRACKS[t as TrackId].name}
+      />
+      <Textarea
+        rows={4}
+        value={mem.trackNotes[t as TrackId] ?? ""}
+        onChange={(e) => {
+          const next = {
+            ...mem.trackNotes,
+            [t as TrackId]: e.target.value,
+          };
+          update("trackNotes", next);
+        }}
+      />
+    </div>
+  ))}
               {q && notesMatched === 0 ? (
                 <p className="rounded-xl border border-dashed border-ink-200 px-4 py-6 text-center text-xs text-ink-500">
                   No track notes match this search.

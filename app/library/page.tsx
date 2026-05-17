@@ -70,7 +70,7 @@ export default function LibraryPage() {
                 </CardHeader>
                 <CardContent className="grid gap-3 sm:grid-cols-2">
                   {TRACK_ORDER.map((t) => {
-                    const entry = FILE_STACKS[t][r.key];
+                    const entry = FILE_STACKS[t as TrackId][r.key];
                     return (
                       <div
                         key={t}

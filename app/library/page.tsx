@@ -15,6 +15,7 @@ import { FILE_STACKS } from "@/config/fileStacks";
 import { TRACKS, TRACK_ORDER, type TrackId } from "@/config/tracks";
 import { PROMPTS } from "@/config/prompts";
 
+
 const ROLES = [
   { key: "formatTemplate", label: "Format Template" },
   { key: "contentMaster", label: "Content Master" },
@@ -52,7 +53,7 @@ export default function LibraryPage() {
         <TabsContent value="byTrack" className="mt-6">
           <div className="grid gap-6 md:grid-cols-2">
             {TRACK_ORDER.map((t) => (
-              <TrackStackCard key={t} trackId={t} />
+              <TrackStackCard key={t} trackId={t as TrackId} />
             ))}
           </div>
         </TabsContent>

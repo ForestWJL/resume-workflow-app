@@ -76,7 +76,7 @@ export default function LibraryPage() {
                         key={t}
                         className="flex flex-col gap-1 rounded-xl border border-ink-100 bg-ink-50/40 px-4 py-3"
                       >
-                        <TrackBadge trackId={t} size="sm" />
+                        <TrackBadge trackId={t as TrackId} size="sm" />
                         <span className="font-mono text-[12.5px] text-ink-800">
                           {entry.fileName}
                         </span>

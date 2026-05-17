@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(60% 60% at 10% 0%, rgba(10, 132, 255, 0.06) 0%, transparent 70%),
+    radial-gradient(50% 50% at 90% 10%, rgba(99, 102, 241, 0.04) 0%, transparent 70%),
+    #fbfbfd;
+  color: #131320;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.003em;
+}
+
+/* Apple-style selection */
+::selection {
+  background: rgba(10, 132, 255, 0.18);
+}
+
+/* Nice scrollbars for the prompt preformatted blocks */
+pre::-webkit-scrollbar { height: 8px; width: 8px; }
+pre::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 999px; }
+pre::-webkit-scrollbar-track { background: transparent; }

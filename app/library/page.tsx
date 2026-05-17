@@ -109,7 +109,7 @@ function TrackStackCard({ trackId }: { trackId: TrackId }) {
           <TrackBadge trackId={trackId} size="md" />
           <CardTitle>{track.name}</CardTitle>
         </div>
-        <CardDescription>{track.summary}</CardDescription>
+        <CardDescription>Workflow track configuration</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {ROLES.map((r) => {

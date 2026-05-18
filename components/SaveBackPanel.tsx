@@ -274,7 +274,7 @@ export function SaveBackPanel({
                 Track tags
               </span>
               {TRACK_ORDER.map((t) => {
-                const active = tags.includes(t);
+                const active = tags.includes(t as TrackId);
                 return (
                   <button
                     key={t}

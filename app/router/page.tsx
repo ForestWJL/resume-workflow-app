@@ -55,7 +55,7 @@ export default function RouterPage() {
     console.log("PROMPT MODE:", r.promptMode);
     console.log(
     buildPrompt(
-      r.track,
+      r.selectedTrack,
       r.promptMode,
       r.jdText
     )

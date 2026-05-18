@@ -8,12 +8,14 @@ export type TrackId =
 
 export interface TrackConfig {
   id: TrackId;
-  name: string;   
+  name: string;
   titleSignals: string[];
   domainSignals: string[];
   functionalSignals: string[];
   toolSignals: string[];
   ambiguousTitleSignals?: string[];
+  /** Optional informational sub-variants (used by `resolveVariant` in scoring). */
+  variants?: Array<{ id: string; name: string; strongSignals: string[] }>;
 }
 
 export const TRACKS: Record<TrackId, TrackConfig> = {
@@ -46,8 +48,6 @@ A_PMC: {
     "distribution",
     "packing",
     "picking",
-    "batch",
-    "expiry"
   ],
 
   functionalSignals: [
@@ -87,11 +87,73 @@ A_PMC: {
   A_REGULATED: {
     id: "A_REGULATED",
     name: "Regulated Supply Chain",
-    titleSignals: ["pharma", "medtech"],
-    domainSignals: ["gmp", "regulatory", "validation"],
-    functionalSignals: ["compliance"],
+    titleSignals: [
+      "pharma",
+      "medtech",
+      "quality supply chain",
+      "supply chain quality",
+      "clinical supply",
+      "clinical supplies",
+      "batch release",
+      "gmp",
+      "regulatory affairs",
+      "qp",
+      "qualified person",
+    ],
+    domainSignals: [
+      "gmp",
+      "cgmp",
+      "gxp",
+      "regulatory",
+      "validation",
+      "pharmaceutical",
+      "biopharma",
+      "clinical trial",
+      "clinical supply",
+      "cold chain",
+      "gdp",
+      "sterile",
+      "aseptic",
+      "serialization",
+      "temperature excursion",
+      "temperature excursions",
+      "quarantine",
+      "recall",
+      "pharmacovigilance",
+    ],
+    functionalSignals: [
+      "compliance",
+      "batch release",
+      "batch disposition",
+      "batch record",
+      "batch documentation",
+      "fefo",
+      "first expired first out",
+      "expiry",
+      "expiry dates",
+      "monitor expiry",
+      "cold chain",
+      "clinical supply",
+      "clinical trial supplies",
+      "clinical trial supply",
+      "drug product",
+      "temperature monitoring",
+      "chain of custody",
+      "documentation and approvals",
+      "deviation",
+      "capa",
+      "investigational medicinal product",
+      "imp",
+      "qp release",
+      "release for supply",
+      "qualified person",
+      "good distribution practice",
+      "sterility",
+      "clean room",
+      "cleanroom",
+    ],
     toolSignals: [],
-    ambiguousTitleSignals: []
+    ambiguousTitleSignals: [],
   },
 
   AB_HYBRID: {
@@ -155,14 +217,42 @@ A_PMC: {
   CB_BUYER: {
     id: "CB_BUYER",
     name: "Buyer / Procurement",
-    titleSignals: ["buyer", "procurement"],
-    domainSignals: ["supplier", "rfq"],
+    titleSignals: [
+      "buyer",
+      "procurement",
+      "purchasing",
+      "sourcing",
+      "category manager",
+      "vendor manager",
+    ],
+    domainSignals: [
+      "supplier",
+      "rfq",
+      "vendor",
+      "procurement",
+      "sourcing",
+      "tender",
+      "subcontractor",
+    ],
     functionalSignals: [
       "rfq",
+      "rfi",
+      "request for quotation",
+      "request for quote",
+      "invitation to tender",
       "quotation",
+      "quotations",
       "vendor coordination",
       "vendor sourcing",
+      "vendor selection",
+      "vendor evaluation",
+      "supplier evaluation",
+      "supplier coordination",
+      "supplier onboarding",
       "procurement",
+      "strategic sourcing",
+      "sourcing",
+      "category sourcing",
       "cost comparison",
       "comparison sheet",
       "cost calculation",
@@ -186,6 +276,12 @@ A_PMC: {
       "supplier follow-up",
       "pricing analysis",
       "margin tracking",
+      "purchase requisition",
+      "purchase order",
+      "po placement",
+      "negotiation",
+      "supplier quote",
+      "vendor quote",
     ],
   toolSignals: [
       "excel",

@@ -28,6 +28,7 @@ import {
   setLastActiveRoutingId,
 } from "@/lib/storage";
 import { TRACKS } from "@/config/tracks";
+import { SCORING } from "@/config/scoring";
 import { FILE_STACKS } from "@/config/fileStacks";
 import { PROMPTS } from "@/config/prompts";
 import type { RoutingResult } from "@/lib/types";
@@ -72,7 +73,7 @@ export default function RouterPage() {
     const swapped: RoutingResult = {
       ...result,
       selectedTrack: trackId,
-      trackerTag: `[Track ${trackId}] ${truncate(
+      trackerTag: `[${trackId}] ${truncate(
         result.jdTitleGuess,
         60
       )} — ${result.recommendation} (manual)`,
@@ -100,9 +101,6 @@ export default function RouterPage() {
       case "Apply":
         return "accent";
   
-      case "Apply (Transferable)":
-        return "accent";
-  
       case "Stretch":
         return "warn";
   
@@ -125,9 +123,10 @@ export default function RouterPage() {
           Paste a job description. Get a clean routing plan.
         </h1>
         <p className="max-w-2xl text-sm text-ink-500 sm:text-base">
-          The router classifies the role into Track A / B / C / D, scores
-          whether it's worth applying to, and tells you exactly which file
-          stack and prompt to use next.
+          The router classifies the role into one of six tracks (A_PMC,
+          A_REGULATED, AB_HYBRID, AC_DEMAND, CB_BUYER, D_SUPPORT), scores whether
+          it is worth applying, and tells you exactly which file stack and prompt
+          to use next.
         </p>
       </section>
 
@@ -194,11 +193,11 @@ export default function RouterPage() {
                   <Badge variant="warn">
                     Support-shape role
                     {result.supportShape.trackAPenaltyApplied
-                      ? " (A ×0.7, B ×1.2)"
+                      ? ` (A_PMC ×${SCORING.supportShape.trackAPenaltyMultiplier}, CB_BUYER ×${SCORING.supportShape.trackBBoostMultiplier})`
                       : result.supportShape.suppressedByFullWeightATitle
-                        ? " (A penalty blocked by title)"
+                        ? " (A_PMC penalty blocked by title)"
                         : result.supportShape.suppressedByRegulatedPlanning
-                          ? " (A penalty blocked by regulated-planning signals)"
+                          ? " (A_PMC penalty blocked by regulated-planning signals)"
                           : ""}
                   </Badge>
                 ) : null}
@@ -293,7 +292,7 @@ export default function RouterPage() {
                         }
                         onClick={() => overrideTo(t)}
                       >
-                        Track {t} — {TRACKS[t].name}
+                        {t} — {TRACKS[t].name}
                       </Button>
                     ))}
                   </div>

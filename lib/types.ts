@@ -26,11 +26,19 @@ export interface ScoreBreakdown {
   // True when the thin-evidence guard halved this track's raw score.
   thinEvidencePenaltyApplied?: boolean;
   // True when the support-shape adjustment modified this track's raw score
-  // (Track A penalty or Track B boost). Used for explainability on the router.
+  // (A_PMC penalty or CB_BUYER boost). Used for explainability on the router.
   supportShapeAdjustmentApplied?: boolean;
-  // True when the clinical-supply Track D guard soft-penalised this track
-  // (only ever set on Track D). Used for explainability.
+  // True when the clinical-supply D_SUPPORT guard soft-penalised this track
+  // (only ever set on D_SUPPORT). Used for explainability.
   clinicalSupplyGuardApplied?: boolean;
+}
+
+/** JD profile boosts applied before support-shape / D_SUPPORT guard (classifier). */
+export interface TrackProfileBoostDecision {
+  regulatedSupplyBuckets: number;
+  regulatedSupplyBoostApplied: boolean;
+  procurementBuckets: number;
+  procurementBoostApplied: boolean;
 }
 
 export type LeadType = "domain-led" | "function-led" | "balanced";
@@ -62,7 +70,7 @@ export interface RoutingResult {
   trackerTag: string;
   seniorityPenaltyApplied: boolean;
   // New (optional for backward-compat with older LocalStorage entries):
-  // Informational variant label (e.g. Track C → Replenishment / Forecasting / Mixed).
+  // Informational variant label (e.g. AC_DEMAND → replenishment vs forecasting / mixed).
   // Does NOT change recommendation, file stack, or prompt selection.
   variantId?: string;
   variantName?: string;
@@ -96,7 +104,7 @@ export interface RoutingResult {
   rescueReason?: RescueReason; // which rule(s) fired
   // Role-shape detector output (optional, backward-compat for older LocalStorage entries).
   // Active when support-verb density crossed the threshold; penalty/boost reflect
-  // whether each adjustment was actually applied (safeguards may block the A penalty).
+  // whether each adjustment was actually applied (safeguards may block the A_PMC penalty).
   supportShape?: {
     active: boolean;
     density: number;
@@ -106,6 +114,17 @@ export interface RoutingResult {
     suppressedByRegulatedPlanning: boolean;
     matchedVerbs: string[];
   };
+  /** Regulated / procurement profile boosts (optional for older saved routings). */
+  trackProfileBoosts?: TrackProfileBoostDecision;
+  /** UI row for decision chip (optional for older saved routings). */
+  uiDecision?: {
+    label: Recommendation;
+    color: string;
+    reason: string;
+  };
+  decisionLabel?: Recommendation;
+  decisionColor?: string;
+  decisionReason?: string;
 }
 
 export interface WorkflowSession {

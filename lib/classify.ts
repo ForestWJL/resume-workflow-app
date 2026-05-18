@@ -1,18 +1,13 @@
 import { TRACKS, type TrackConfig, type TrackId } from "../config/tracks";
 import { SCORING } from "../config/scoring";
-import type { Confidence, ScoreBreakdown } from "./types";
+import type {
+  Confidence,
+  ScoreBreakdown,
+  TrackProfileBoostDecision,
+} from "./types";
 
 // lib/classify.ts
 // Keyword-weighted track classifier.
-//
-// Approach:
-// 1. Normalise the JD text (lowercase).
-// 2. For each track, count matches in title / domain / functional / tool signals
-//    weighted by SCORING.weights.
-// 3. Apply thin-evidence guard.
-// 4. Winning track = highest raw score.
-// 5. Confidence = winning share of total.
-console.log("CLASSIFY FILE LOADED");
 
 export function normalise(text: string) {
   return text.toLowerCase();
@@ -106,14 +101,6 @@ function scoreTrack(jd: string, track: TrackConfig): ScoreBreakdown {
       thinEvidencePenaltyApplied = true;
     }
   }
-  console.log(track.id, {
-    title,
-    domain,
-    functional,
-    tool,
-    rawScore,
-    matchedByClass,
-  });
   return {
     trackId: track.id,
     rawScore,
@@ -168,7 +155,102 @@ function countRegulatedPlanningHits(jd: string): number {
   return hits;
 }
 
-/* ───── Clinical-supply Track D guard ───── */
+/* ───── Regulated + procurement profile boosts (migration tuning) ───── */
+
+const REGULATED_PROFILE_GROUPS: string[][] = [
+  ["gmp", "cgmp", "gxp", "good manufacturing practice", "pharmaceutical industry"],
+  [
+    "fefo",
+    "first expired first out",
+    "expiry control",
+    "expiry dates",
+    "monitor expiry",
+  ],
+  [
+    "batch release",
+    "batch record",
+    "batch documentation",
+    "batch disposition",
+    "qp release",
+    "qualified person",
+  ],
+  [
+    "clinical supply",
+    "clinical trial supply",
+    "clinical supplies",
+    "clinical trial supplies",
+    "drug product",
+  ],
+  ["cold chain", "temperature excursion", "temperature excursions"],
+  [
+    "gdp",
+    "good distribution practice",
+    "serialization",
+    "quarantine",
+    "capa",
+    "deviation",
+  ],
+];
+
+const PROCUREMENT_PROFILE_GROUPS: string[][] = [
+  [
+    "rfq",
+    "rfi",
+    "request for quotation",
+    "request for quote",
+    "invitation to tender",
+  ],
+  ["sourcing", "procurement", "purchasing", "buyer", "category sourcing"],
+  [
+    "vendor",
+    "supplier coordination",
+    "supplier evaluation",
+    "vendor evaluation",
+    "vendor management",
+  ],
+  ["quotation", "quotations", "vendor quotation", "supplier quote", "tender", "bidding"],
+];
+
+function countProfileGroups(jd: string, groups: string[][]): number {
+  let buckets = 0;
+  for (const group of groups) {
+    const hit = group.some((kw) => countOccurrences(jd, kw) > 0);
+    if (hit) buckets++;
+  }
+  return buckets;
+}
+
+function applyTrackProfileBoosts(
+  jd: string,
+  breakdown: ScoreBreakdown[]
+): TrackProfileBoostDecision {
+  const regulatedSupplyBuckets = countProfileGroups(jd, REGULATED_PROFILE_GROUPS);
+  const procurementBuckets = countProfileGroups(jd, PROCUREMENT_PROFILE_GROUPS);
+
+  const ar = breakdown.find((b) => b.trackId === "A_REGULATED");
+  const cb = breakdown.find((b) => b.trackId === "CB_BUYER");
+
+  let regulatedSupplyBoostApplied = false;
+  if (ar && regulatedSupplyBuckets >= 2) {
+    ar.rawScore *= 1.28;
+    regulatedSupplyBoostApplied = true;
+  }
+
+  let procurementBoostApplied = false;
+  if (cb && procurementBuckets >= 2) {
+    cb.rawScore *= 1.22;
+    procurementBoostApplied = true;
+  }
+
+  return {
+    regulatedSupplyBuckets,
+    regulatedSupplyBoostApplied,
+    procurementBuckets,
+    procurementBoostApplied,
+  };
+}
+
+/* ───── Clinical-supply D_SUPPORT guard ───── */
 
 export interface ClinicalSupplyGuardDecision {
   active: boolean;
@@ -188,7 +270,6 @@ function countClinicalSupplySignals(jd: string): {
   return { hits: matched.length, matched };
 }
 
-console.log("TRACK KEYS:", Object.keys(TRACKS));
 export function classifyJD(jdText: string): {
   winner: ScoreBreakdown;
   breakdown: ScoreBreakdown[];
@@ -196,20 +277,23 @@ export function classifyJD(jdText: string): {
   confidenceRatio: number;
   supportShape: SupportShapeDecision;
   clinicalSupplyGuard: ClinicalSupplyGuardDecision;
+  trackProfileBoosts: TrackProfileBoostDecision;
 } {
   const jd = normalise(jdText);
   const breakdown: ScoreBreakdown[] = (
     Object.values(TRACKS) as TrackConfig[]
   ).map((t) => scoreTrack(jd, t));
 
+  const trackProfileBoosts = applyTrackProfileBoosts(jd, breakdown);
+
   // ─── Support-shape adjustment ───────────────────────────────────────────
-  // After per-track raw scores are computed but before sorting, adjust Track A
-  // and Track B based on role shape (support vs ownership).
+  // After per-track raw scores are computed but before sorting, adjust A_PMC
+  // and CB_BUYER based on role shape (support vs ownership / buying execution).
   const supportShape = applySupportShapeAdjustment(jd, breakdown);
 
-  // ─── Clinical-supply Track D guard ──────────────────────────────────────
+  // ─── Clinical-supply D_SUPPORT guard ──────────────────────────────────────
   // When the JD is clearly regulated clinical supply coordination, soft-
-  // penalise Track D so weak generic analytics words ("reports", "project
+  // penalise D_SUPPORT so weak generic analytics words ("reports", "project
   // coordinator") can't drag the role into the wrong track.
   const clinicalSupplyGuard = applyClinicalSupplyTrackDGuard(jd, breakdown);
 
@@ -247,6 +331,7 @@ export function classifyJD(jdText: string): {
     confidenceRatio,
     supportShape,
     clinicalSupplyGuard,
+    trackProfileBoosts,
   };
 }
 
@@ -286,7 +371,7 @@ function applySupportShapeAdjustment(
   const trackA = breakdown.find((b) => b.trackId === "A_PMC");
   const trackB = breakdown.find((b) => b.trackId === "CB_BUYER");
 
-  // Safeguard (a): did a full-weight Track A titleSignal fire? Track A's
+  // Safeguard (a): did a full-weight A_PMC titleSignal fire? A_PMC's
   // `matchedByClass.title` contains only full-weight title hits (ambiguous
   // title hits go into the functional bucket), so this check is direct.
   const suppressedByFullWeightATitle =

@@ -7,7 +7,7 @@
 //   - minus seniority penalty if the JD implies seniority beyond candidate's proven level
 //
 // This module also:
-//   - resolves informational variants (e.g. Track C → Replenishment vs Forecasting)
+//   - resolves informational variants (e.g. AC_DEMAND → replenishment vs forecasting)
 //   - builds a plain-English reasoning summary
 //   - reports the runner-up track and gap
 //   - classifies whether the winner is domain-led, function-led, or balanced
@@ -20,11 +20,12 @@ import {
   type ClinicalSupplyGuardDecision,
   type SupportShapeDecision,
 } from "./classify";
-import { TRACKS, type TrackId, type TrackVariant } from "@/config/tracks";
+import { TRACKS, type TrackId } from "@/config/tracks";
 import {
   SCORING,
   recommendationWithContext,
   type RecommendationDecision,
+  type Recommendation,
 } from "@/config/scoring";
 import { resolvePromptMode } from "./prompt-routing";
 import { MEMORY_SEED } from "@/config/memorySeed";
@@ -34,6 +35,7 @@ import type {
   MemoryBank,
   ScoreBreakdown,
   LeadType,
+  TrackProfileBoostDecision,
 } from "./types";
 
 interface ScoreInput {
@@ -49,6 +51,7 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     confidenceRatio,
     supportShape,
     clinicalSupplyGuard,
+    trackProfileBoosts,
   } = classifyJD(jdText);
   const winnerTrack = TRACKS[winner.trackId];
   const jd = normalise(jdText);
@@ -70,65 +73,32 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     jd.includes(k.toLowerCase())
   );
   if (seniorityHit) worth -= SCORING.seniorityPenalty;
-// ✅ 先算 functional / domain fit
-const functionalFit = formatScore(
-  (winner.functional /
-    (winner.functional + SCORING.softSaturation.functionalK)) *
-    100 *
-    SCORING.fitCeiling
-);
 
-const domainFit = formatScore(
-  (winner.domain /
-    (winner.domain + SCORING.softSaturation.domainK)) *
-    100 *
-    SCORING.fitCeiling
-);
+  const functionalFit = formatScore(
+    (winner.functional /
+      (winner.functional + SCORING.softSaturation.functionalK)) *
+      100 *
+      SCORING.fitCeiling
+  );
 
-// 🔥 1. 主惩罚（只选一个）
-if (functionalFit < 30) {
-  worth *= 0.7; // hard fail
-} else if (functionalFit < 50) {
-  worth *= 0.85; // borderline
-}
+  const domainFit = formatScore(
+    (winner.domain / (winner.domain + SCORING.softSaturation.domainK)) *
+      100 *
+      SCORING.fitCeiling
+  );
 
-// 🔥 2. Domain保护（不是再砍，而是减轻误伤）
-if (domainFit > 60 && functionalFit >= 30 && functionalFit < 50) {
-  worth *= 1.1; // 从 1.03 → 1.1
-}
+  if (functionalFit < 30) {
+    worth *= 0.7;
+  } else if (functionalFit < 50) {
+    worth *= 0.85;
+  }
 
-// ✅ 最后才出 score
-const worthApplyingScore = formatScore(worth);
-const recDecision = recommendationWithContext(
-  worthApplyingScore,
-  functionalFit,
-  domainFit
-);
+  if (domainFit > 60 && functionalFit >= 30 && functionalFit < 50) {
+    worth *= 1.1;
+  }
 
-const uiDecision = getDecisionLabel(
-  worthApplyingScore,
-  functionalFit,
-  domainFit
-);
+  const worthApplyingScore = formatScore(worth);
 
-let recommendation = uiDecision.label;
-
-
-// 🔥 NEW：让 transferable 有机会 override
-if (
-  recommendation === "Skip" &&
-  functionalFit >= 35 &&
-  domainFit >= 60
-) {
-  recommendation = "Apply"
-}
-const promptMode = resolvePromptMode(recommendation);
-const generatedPrompt = buildPrompt(
-  winner.trackId,
-  promptMode,
-  jdText
-);
-  // Runner-up + gap (needed both for rescue logic and the UI card)
   const runnerUpBreakdown = breakdown[1];
   const runnerUp = runnerUpBreakdown
     ? {
@@ -138,9 +108,22 @@ const generatedPrompt = buildPrompt(
       }
     : undefined;
 
-  // Context-aware recommendation — applies transferable / borderline rescue
-  // unless the winner's thin-evidence guard already fired (in which case
-  // rescue is disabled regardless of the other signals).
+  const recDecision = recommendationWithContext({
+    baseWorth: worthApplyingScore,
+    functionalFit,
+    domainFit,
+    confidence,
+    runnerUpGap: runnerUp?.gap,
+    thinEvidencePenaltyApplied: winner.thinEvidencePenaltyApplied ?? false,
+  });
+
+  const uiDecision = uiFromRecDecision(recDecision, functionalFit);
+  const recommendation = recDecision.recommendation;
+  const promptMode = resolvePromptMode(recommendation);
+  const generatedPrompt = buildPrompt(winner.trackId, promptMode, jdText);
+
+  // Context-aware recommendation bands (Strong Apply / Apply / Stretch / Skip)
+  // plus transferable / borderline flags from `recommendationWithContext`.
 
   // Gap analysis
   const mem = memoryBank ?? MEMORY_SEED;
@@ -202,6 +185,7 @@ const generatedPrompt = buildPrompt(
     domainFit,
     supportShape,
     clinicalSupplyGuard,
+    trackProfileBoosts,
   });
 
   const suggestedNextStep = buildNextStep(
@@ -212,7 +196,7 @@ const generatedPrompt = buildPrompt(
 
   const titleForTag = guessJDTitle(jdText);
   const companyForTag = guessJDCompany(jdText, titleForTag);
-  const trackerTag = `[Track ${winner.trackId}${
+  const trackerTag = `[${winner.trackId}${
     variant ? ` · ${variant.name}` : ""
   }] ${truncate(titleForTag, 60)} — ${recommendation}`;
 
@@ -257,6 +241,7 @@ const generatedPrompt = buildPrompt(
     rescueReason: recDecision.rescueReason,
     // Support-shape detector output
     supportShape,
+    trackProfileBoosts,
   };
 }
 
@@ -290,7 +275,7 @@ function resolveVariant(
   const variants = track.variants;
   if (!variants || variants.length === 0) return undefined;
 
-  const counts = variants.map((v: TrackVariant) => {
+  const counts = variants.map((v) => {
     let hits = 0;
     for (const kw of v.strongSignals) {
       if (jd.includes(kw.toLowerCase())) hits++;
@@ -302,7 +287,7 @@ function resolveVariant(
   const tied = counts.filter((c) => c.hits === best.hits).length > 1;
 
   if (best.hits === 0 || tied) {
-    return { id: `${trackId}-mixed`, name: `Track ${trackId} (mixed)` };
+    return { id: `${trackId}-mixed`, name: `${trackId} — mixed variant` };
   }
   return { id: best.v.id, name: best.v.name };
 }
@@ -325,11 +310,12 @@ function buildReasoningSummary(args: {
   leadType: LeadType;
   variant?: { id: string; name: string };
   topMatchedSignals: NonNullable<RoutingResult["topMatchedSignals"]>;
-  decision: RecommendationDecision,
+  decision: RecommendationDecision;
   functionalFit: number;
   domainFit: number;
   supportShape: SupportShapeDecision;
   clinicalSupplyGuard: ClinicalSupplyGuardDecision;
+  trackProfileBoosts: TrackProfileBoostDecision;
 }): string {
   const {
     winner,
@@ -345,6 +331,7 @@ function buildReasoningSummary(args: {
     domainFit,
     supportShape,
     clinicalSupplyGuard,
+    trackProfileBoosts,
   } = args;
 
   // Pick the top 3 signals that most strongly influenced the decision,
@@ -383,7 +370,7 @@ function buildReasoningSummary(args: {
         : "balanced domain + functional signals";
 
   parts.push(
-    `Track ${winner.trackId} (${winnerTrackName}) won on ${leadPhrase}` +
+    `${winner.trackId} (${winnerTrackName}) won on ${leadPhrase}` +
       (topThree.length
         ? ` — top matches: ${topThree.join(", ")}.`
         : ".")
@@ -399,7 +386,7 @@ function buildReasoningSummary(args: {
 
   if (runnerUp) {
     parts.push(
-      `Runner-up Track ${runnerUp.trackId} trailed by ${runnerUp.gap} pts.`
+      `Runner-up ${runnerUp.trackId} trailed by ${runnerUp.gap} pts.`
     );
   }
 
@@ -421,22 +408,48 @@ function buildReasoningSummary(args: {
     );
   }
 
+  if (
+    trackProfileBoosts.regulatedSupplyBoostApplied ||
+    trackProfileBoosts.procurementBoostApplied
+  ) {
+    const bits: string[] = [];
+    if (trackProfileBoosts.regulatedSupplyBoostApplied) {
+      bits.push(
+        `Regulated-supply profile signal (${trackProfileBoosts.regulatedSupplyBuckets} theme groups) — A_REGULATED raw score ×1.28 before ordering tracks.`
+      );
+    }
+    if (trackProfileBoosts.procurementBoostApplied) {
+      bits.push(
+        `Procurement / sourcing profile signal (${trackProfileBoosts.procurementBuckets} theme groups) — CB_BUYER raw score ×1.22 before ordering tracks.`
+      );
+    }
+    parts.push(bits.join(" "));
+  }
+
   // Support-shape narration.
   if (supportShape.active) {
     const adjustments: string[] = [];
-    if (supportShape.trackAPenaltyApplied) adjustments.push("Track A raw score ×0.7");
-    if (supportShape.trackBBoostApplied) adjustments.push("Track B raw score ×1.2");
+    const pen = SCORING.supportShape.trackAPenaltyMultiplier;
+    const boost = SCORING.supportShape.trackBBoostMultiplier;
+    if (supportShape.trackAPenaltyApplied) {
+      adjustments.push(`A_PMC raw score ×${pen}`);
+    }
+    if (supportShape.trackBBoostApplied) {
+      adjustments.push(`CB_BUYER raw score ×${boost}`);
+    }
     const safeguards: string[] = [];
-    if (supportShape.suppressedByFullWeightATitle)
-      safeguards.push("full-weight Track A title matched");
-    if (supportShape.suppressedByRegulatedPlanning)
+    if (supportShape.suppressedByFullWeightATitle) {
+      safeguards.push("full-weight A_PMC title matched");
+    }
+    if (supportShape.suppressedByRegulatedPlanning) {
       safeguards.push("regulated-planning safeguard fired");
+    }
     const base = `Support-shape role detected (density ${supportShape.density})`;
     if (adjustments.length > 0) {
       parts.push(`${base} — ${adjustments.join(", ")}.`);
     } else if (safeguards.length > 0) {
       parts.push(
-        `${base} — Track A penalty blocked (${safeguards.join(", ")}); Track B boost ${
+        `${base} — A_PMC penalty blocked (${safeguards.join(", ")}); CB_BUYER boost ${
           supportShape.trackBBoostApplied ? "applied" : "skipped"
         }.`
       );
@@ -445,11 +458,10 @@ function buildReasoningSummary(args: {
     }
   }
 
-  // Clinical-supply Track D guard narration — only fires when the guard
-  // actually changed Track D's raw score.
+  // Clinical-supply D_SUPPORT guard narration — only when D_SUPPORT raw score was scaled.
   if (clinicalSupplyGuard.active && clinicalSupplyGuard.trackDPenaltyApplied) {
     parts.push(
-      `Clinical-supply guard fired (${clinicalSupplyGuard.hits} regulated-clinical signals) — Track D raw score ×0.7 so generic analytics wording could not over-pull the classification.`
+      `Clinical-supply guard fired (${clinicalSupplyGuard.hits} regulated-clinical signals) — D_SUPPORT raw score ×${SCORING.clinicalSupplyTrackDGuard.trackDPenaltyMultiplier} so generic analytics wording could not over-pull the classification.`
     );
   }
 
@@ -469,9 +481,8 @@ function buildReasoningSummary(args: {
     (decision.transferable || decision.borderline) &&
     !decision.promotedFrom
   ) {
-    // Flags were set but no promotion was available (e.g. base was already
-    // Light Tailor or Deep Tailor). Just annotate so the user sees why the
-    // Transferable / Borderline badges appeared.
+    // Flags were set but no promotion was available (e.g. the visible band was
+    // already Strong Apply or Apply).
     const labels: string[] = [];
     if (decision.transferable) labels.push("transferable");
     if (decision.borderline) labels.push("borderline");
@@ -513,53 +524,37 @@ function buildNextStep(
 function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
-// 👇 放在 scoreJD 函数下面（文件底部）
-function getDecisionLabel(
-  worth: number,
-  functionalFit: number,
-  domainFit: number
-): { label: string; color: string; reason: string } {
 
-  // ✅ 1. 强功能匹配（最优）
-  if (functionalFit >= 60) {
-    return {
-      label: "Strong Apply",
-      color: "green",
-      reason: "High functional match"
-    };
-  }
-
-    // 🔥 2. Domain 强 → 可转型（关键新增）
-    if (functionalFit >= 35 && domainFit >= 60) {
+function uiFromRecDecision(
+  rec: RecommendationDecision,
+  functionalFit: number
+): { label: Recommendation; color: string; reason: string } {
+  switch (rec.recommendation) {
+    case "Strong Apply":
       return {
-        label: "Apply (Transferable)",
-        color: "blue",
-        reason: "Strong domain, transferable skills"
+        label: "Strong Apply",
+        color: "green",
+        reason: "High functional match",
       };
+    case "Apply": {
+      const reason = rec.transferable
+        ? "Strong domain, transferable skills"
+        : functionalFit >= 45
+          ? "Good functional base, gaps manageable"
+          : "Moderate fit — proceed with targeted tailoring";
+      return { label: "Apply", color: "blue", reason };
     }
-
-  // ✅ 3. 可直接投
-  if (functionalFit >= 45) {
-    return {
-      label: "Apply",
-      color: "blue",
-      reason: "Good functional base, gaps manageable"
-    };
+    case "Stretch":
+      return {
+        label: "Stretch",
+        color: "orange",
+        reason: "Below target but still possible",
+      };
+    case "Skip":
+      return {
+        label: "Skip",
+        color: "gray",
+        reason: "Low functional alignment",
+      };
   }
-
-  // ⚠️ 4. 边缘尝试
-  if (functionalFit >= 30) {
-    return {
-      label: "Stretch",
-      color: "orange",
-      reason: "Below target but still possible"
-    };
-  }
-
-  // ❌ 5. 真正不匹配
-  return {
-    label: "Skip",
-    color: "gray",
-    reason: "Low functional alignment"
-  };
 }

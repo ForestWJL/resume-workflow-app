@@ -274,19 +274,20 @@ export function SaveBackPanel({
                 Track tags
               </span>
               {TRACK_ORDER.map((t) => {
-                const active = tags.includes(t as TrackId);
+                const id = t as TrackId;
+                const active = tags.includes(id);
                 return (
                   <button
-                    key={t}
+                    key={id}
                     type="button"
-                    onClick={() => toggleTag(t)}
+                    onClick={() => toggleTag(id)}
                     className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition ${
                       active
                         ? "border-ink-900 bg-ink-900 text-white"
                         : "border-ink-200 bg-white text-ink-500 hover:border-ink-300"
                     }`}
                   >
-                    Track {t}
+                    {id}
                   </button>
                 );
               })}

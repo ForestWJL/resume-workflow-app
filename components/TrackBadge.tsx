@@ -2,10 +2,12 @@ import { cn } from "@/lib/utils";
 import type { TrackId } from "@/config/tracks";
 
 const COLORS: Record<TrackId, string> = {
-  A: "bg-sky-50 text-sky-700 border-sky-100",
-  B: "bg-amber-50 text-amber-700 border-amber-100",
-  C: "bg-emerald-50 text-emerald-700 border-emerald-100",
-  D: "bg-violet-50 text-violet-700 border-violet-100",
+  A_PMC: "bg-sky-50 text-sky-700 border-sky-100",
+  A_REGULATED: "bg-rose-50 text-rose-800 border-rose-100",
+  AB_HYBRID: "bg-teal-50 text-teal-800 border-teal-100",
+  AC_DEMAND: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  CB_BUYER: "bg-amber-50 text-amber-700 border-amber-100",
+  D_SUPPORT: "bg-violet-50 text-violet-700 border-violet-100",
 };
 
 export function TrackBadge({
@@ -34,7 +36,7 @@ export function TrackBadge({
         className
       )}
     >
-      <span className="font-semibold">Track {trackId}</span>
+      <span className="font-semibold">{trackId}</span>
       {label ? <span className="text-ink-500">· {label}</span> : null}
     </span>
   );

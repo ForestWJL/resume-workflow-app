@@ -9,49 +9,49 @@ export const MEMORY_SEED: MemoryBank = {
     {
       company: "Sanofi",
       fact: "Raw material planning, PO placement in SAP MM, 24-month rolling demand plans, FEFO / expiry discipline, stock-at-risk monitoring.",
-      tags: ["A", "B"],
+      tags: ["A_PMC", "AB_HYBRID"],
       verified: true,
     },
     {
       company: "Sanofi",
       fact: "45 consecutive months with zero raw material write-offs.",
-      tags: ["A", "B"],
+      tags: ["A_PMC", "AB_HYBRID"],
       verified: true,
     },
     {
       company: "Sanofi",
       fact: "Local Material Master Data Expert certified by Sanofi France.",
-      tags: ["A", "B"],
+      tags: ["A_PMC", "AB_HYBRID"],
       verified: true,
     },
     {
       company: "Ryder",
       fact: "Production planning for 10 HP lines, SAP MM, capacity forecasts, PO follow-up, BOM-based packaging procurement, supplier follow-up, material availability.",
-      tags: ["A", "B"],
+      tags: ["A_PMC", "AB_HYBRID"],
       verified: true,
     },
     {
       company: "YCH",
       fact: "FMCG / regional distribution, KPI reporting, RFQ / RFI, supplier evaluation, 20% lead time improvement, 30% cost reduction.",
-      tags: ["B", "C"],
+      tags: ["AB_HYBRID", "AC_DEMAND"],
       verified: true,
     },
     {
       company: "Cainiao",
       fact: "KPI scorecards, backlog / exception tracking, SOP rollout, shipment coordination, e-commerce fulfilment, order visibility.",
-      tags: ["A", "C", "D"],
+      tags: ["A_PMC", "AC_DEMAND", "D_SUPPORT"],
       verified: true,
     },
     {
       company: "CWT",
       fact: "WMS / customer-system reconciliation, UAT, billing / record accuracy, process redesign.",
-      tags: ["B", "D"],
+      tags: ["AB_HYBRID", "D_SUPPORT"],
       verified: true,
     },
     {
       company: "Sabbatical / NTUC",
       fact: "Excel, Power BI, SQL, dashboards, reporting tools, exception-based trackers, AI-assisted workflow support.",
-      tags: ["C", "D"],
+      tags: ["AC_DEMAND", "D_SUPPORT"],
       verified: true,
     },
   ],
@@ -62,7 +62,7 @@ export const MEMORY_SEED: MemoryBank = {
       tools: "Python, Pandas, NumPy",
       summary:
         "Structured data cleaning, exploratory analysis, feature handling, predictive modelling.",
-      tags: ["D"],
+      tags: ["D_SUPPORT"],
       verified: true,
     },
     {
@@ -71,7 +71,7 @@ export const MEMORY_SEED: MemoryBank = {
       tools: "Power BI, Excel / CSV, DAX / Power Query (where used)",
       summary:
         "KPI visibility for e-commerce performance — trend monitoring, decision support.",
-      tags: ["C", "D"],
+      tags: ["AC_DEMAND", "D_SUPPORT"],
       verified: true,
     },
     {
@@ -80,7 +80,7 @@ export const MEMORY_SEED: MemoryBank = {
       tools: "Power BI, Excel, basic SQL",
       summary:
         "Aging, delays, backlog, exception trends, KPI scorecards for operational visibility.",
-      tags: ["A", "C", "D"],
+      tags: ["A_PMC", "AC_DEMAND", "D_SUPPORT"],
       verified: true,
     },
     {
@@ -89,7 +89,7 @@ export const MEMORY_SEED: MemoryBank = {
       tools: "Dashboard logic, reporting framework, AI-assisted structuring",
       summary:
         "Concept for centralised exception visibility, SLA risks, inventory issues. Label honestly.",
-      tags: ["A", "D"],
+      tags: ["A_PMC", "D_SUPPORT"],
       verified: false,
     },
     {
@@ -98,7 +98,7 @@ export const MEMORY_SEED: MemoryBank = {
       tools: "Spreadsheets, AI prompts, structured tracking logic",
       summary:
         "Workflow for lead capture, application logging, follow-up discipline. Label as in progress.",
-      tags: ["D"],
+      tags: ["D_SUPPORT"],
       verified: false,
     },
   ],
@@ -126,9 +126,22 @@ export const MEMORY_SEED: MemoryBank = {
     "Machine-learning leadership language — not demonstrated yet",
   ],
   trackNotes: {
-    A: "Lead with Sanofi + Ryder. Keep analytics as a support layer only, not identity.",
-    B: "Lead with Ryder + Sanofi procurement facts. Keep tone hands-on, not strategic.",
-    C: "Lead with YCH FMCG anchor. Cainiao supports omni-channel angle.",
-    D: "Lead with dashboards + portfolio projects. Label AI projects honestly — concept / in progress where true.",
+  A_PMC:
+    "Lead with Sanofi + Ryder. Keep analytics as support layer only.",
+    
+  A_REGULATED:
+    "Lead with GMP / FEFO / expiry / regulated inventory discipline.",
+    
+  AB_HYBRID:
+    "Lead with operational coordination, supplier follow-up, execution discipline.",
+    
+  AC_DEMAND:
+    "Lead with forecasting, replenishment, KPI visibility, inventory balancing.",
+    
+  CB_BUYER:
+    "Lead with RFQ, supplier coordination, pricing, procurement execution.",
+    
+  D_SUPPORT:
+    "Lead with dashboards, reporting, Power BI, SQL, workflow visibility.",
   },
 };

@@ -21,7 +21,10 @@ export function FileStackCard({ trackId }: { trackId: TrackId }) {
           <TrackBadge trackId={trackId} />
           <CardTitle>{track.name}</CardTitle>
         </div>
-        <p className="text-xs text-ink-500">{track.summary}</p>
+        <p className="text-xs text-ink-500">
+          {stack.trackNote ??
+            track.titleSignals.slice(0, 4).join(" · ")}
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
         {rows.map((row) => (

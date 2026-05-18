@@ -18,7 +18,7 @@ trackNote?: string;
 }
 
 export const FILE_STACKS: Record<TrackId, FileStack> = {
-// ===== A_PMC (原 A) =====
+// ===== A_PMC — pharma / medtech supply planning =====
 A_PMC: {
 formatTemplate: {
 label: "Format Template",
@@ -39,7 +39,7 @@ fileName: "Forest_Wang_RegionalSCAnalyst_Terumo_v2.docx",
 },
 },
 
-// ===== A_REGULATED（先复用 A）=====
+// ===== A_REGULATED — regulated supply chain / GMP-adjacent roles =====
 A_REGULATED: {
 formatTemplate: {
 label: "Format Template",
@@ -59,7 +59,7 @@ fileName: "Forest_Wang_RegionalSCAnalyst_Terumo_v2.docx",
 },
 },
 
-// ===== AB_HYBRID（偏采购+计划）=====
+// ===== AB_HYBRID — planning + procurement hybrid =====
 AB_HYBRID: {
 formatTemplate: {
 label: "Format Template",
@@ -79,7 +79,7 @@ fileName: "Forest_Wang_PurchasingPlanning_DoodleLabs_v2.docx",
 },
 },
 
-// ===== AC_DEMAND（原 C）=====
+// ===== AC_DEMAND — demand / replenishment / forecasting =====
 AC_DEMAND: {
 formatTemplate: {
 label: "Format Template",
@@ -100,7 +100,7 @@ fileName: "Forest_Wang_SeniorSCExec_Watsons_v3.docx",
 },
 },
 
-// ===== CB_BUYER（原 B）=====
+// ===== CB_BUYER — buyer / procurement / sourcing =====
 CB_BUYER: {
 formatTemplate: {
 label: "Format Template",
@@ -120,7 +120,7 @@ fileName: "Forest_Wang_PurchasingPlanning_DoodleLabs_v2.docx",
 },
 },
 
-// ===== D_SUPPORT（原 D）=====
+// ===== D_SUPPORT — analytics / reporting / KPI =====
 D_SUPPORT: {
 formatTemplate: {
 label: "Approved Base Resume / Format Anchor",

@@ -8,10 +8,10 @@ import type { Confidence } from "@/lib/types";
 export const SCORING = {
   // keyword weight by signal class
   weights: {
-    title: 2.2,
-    domain: 1.2,
-    functional: 3.2,
-    tool: 0.5,
+    title: 3,
+    domain: 3,
+    functional: 4,
+    tool: 1,
   },
 
   // Soft saturation: score = x / (x + k). Asymptotes toward 1 but never reaches
@@ -32,28 +32,24 @@ export const SCORING = {
   // almost entirely from title hits with no supporting signals, halve the raw
   // score. The routing code also refuses to apply any rescue promotion to a
   // winner whose thin-evidence guard fired — so a title-only match can never
-  // be rescued up into Light Tailor.
+  // be rescued up into a higher recommendation band.
   thinEvidence: {
     titleShareThreshold: 0.7, // title accounts for >70% of rawScore
     requireSupportingClasses: true, // AND domain + functional + tool == 0
     penaltyMultiplier: 0.5, // halve rawScore when triggered
   },
 
-  // Transferable-role rescue: if the track is correct (confidence high/medium)
-  // and functional fit is meaningful, don't let weak domain fit drag the
-  // recommendation down into Practice Only.
+  // Transferable-role rescue (future / documentation): flags when domain is
+  // strong but function is mid — surfaced via `transferable` on the routing
+  // result; the visible recommendation label stays within the four bands.
   transferableRule: {
-    functionalFitThreshold: 45, // functional fit ≥ 60 qualifies
-    lowDomainFitThreshold: 32, // domain fit < 40 = transferable-labelled
-    // Promotion is capped at Light Tailor — rescue logic never pushes into
-    // Deep Tailor. See recommendationWithContext below.
+    functionalFitThreshold: 45,
+    lowDomainFitThreshold: 32,
   },
 
-  // Borderline rescue: when the runner-up track is within N raw points of the
-  // winner, the track choice is uncertain but tailoring cost is low. Promote
-  // a Practice-Only verdict up to Light Tailor.
+  // Borderline rescue (future / documentation): runner-up margin tuning.
   borderlineRule: {
-    runnerUpGapThreshold: 3, // gap < 3 = borderline
+    runnerUpGapThreshold: 3,
   },
 
   // Confidence thresholds (ratio of winning track score to total of all track scores)
@@ -66,21 +62,20 @@ export const SCORING = {
   // Worth-applying score thresholds → recommendation band
 
 
-  // Role-shape detector: distinguishes planning ownership (Track A) from
-  // support / coordination / execution (Track B) roles by measuring support-
+  // Role-shape detector: distinguishes planning ownership (A_PMC) from
+  // buyer / procurement execution (CB_BUYER) roles by measuring support-
   // verb density in the JD. When density is high AND neither safeguard fires,
-  // penalise Track A and boost Track B before confidence / recommendation.
+  // penalise A_PMC and boost CB_BUYER before confidence / recommendation.
   //
-  // Safeguards that block the Track A penalty:
-  //   (a) A full-weight Track A titleSignal matched (role ownership is explicit
+  // Safeguards that block the A_PMC penalty:
+  //   (a) A full-weight A_PMC titleSignal matched (role ownership is explicit
   //       in the title — e.g. "Supply Chain Planner", "Distribution Planner").
-  //   (b) Track A has ≥ regulatedPlanningHitThreshold matches in
-  //       regulatedPlanningSignals (role is clearly regulated pharma planning
+  //   (b) A_PMC-side regulated-planning hit count ≥ regulatedPlanningHitThreshold
+  //       in regulatedPlanningSignals (clearly regulated supply / planning
   //       even if the JD uses support language).
   //
-  // Track B boost still fires even when a safeguard blocks the A penalty —
-  // those safeguards are about *not punishing A*, not about suppressing the
-  // whole detector. In practice this rarely matters because A wins either way.
+  // CB_BUYER boost still fires even when a safeguard blocks the A_PMC penalty —
+  // safeguards only block the A_PMC penalty, not the whole detector.
   supportShape: {
     // Phrase matches are case-insensitive and counted with the same per-phrase
     // cap (3) as the keyword classifier. Multi-word phrases count as one hit.
@@ -123,11 +118,10 @@ export const SCORING = {
     // This many support-verb hits (summed across all phrases, per-phrase cap 3)
     // qualifies the JD as "support-shaped".
     densityThreshold: 8,
-    // Safeguard (a): a full-weight Track A titleSignal fires → penalty blocked.
+    // Safeguard (a): a full-weight A_PMC titleSignal fires → penalty blocked.
     suppressIfFullWeightATitle: true,
-    // Safeguard (b): Track A has this many hits in the regulated-planning strong-
-    // signal list below → penalty blocked. Protects real pharma planning JDs
-    // that happen to use support language.
+    // Safeguard (b): this many distinct regulated-planning phrases hit → penalty
+    // blocked. Protects real pharma / regulated planning JDs that use support language.
     regulatedPlanningHitThreshold: 3,
     regulatedPlanningSignals: [
       "cgmp",
@@ -151,7 +145,7 @@ export const SCORING = {
       "supply chain risk",
       "technology transfer",
       // Regulated clinical supply coordination (Almac-shape). Ensures the
-      // support-shape safeguard blocks the Track A penalty on JDs that are
+      // support-shape safeguard blocks the A_PMC penalty on JDs that are
       // clearly regulated clinical supply even when the wording leans on
       // support-style verbs like "assist", "track", "monitor".
       "clinical trial supplies",
@@ -175,6 +169,18 @@ export const SCORING = {
       "documentation and approvals",
       "expiry dates",
       "monitor expiry",
+      "batch release",
+      "batch record review",
+      "batch documentation",
+      "cold chain",
+      "qualified person",
+      "qp release",
+      "gdp",
+      "good distribution practice",
+      "serialization",
+      "quarantine",
+      "deviation",
+      "capa",
     ],
     // Multipliers applied to raw scores when support-shape fires and the
     // relevant safeguards do not block the adjustment.
@@ -182,14 +188,14 @@ export const SCORING = {
     trackBBoostMultiplier: 1.2,
   },
 
-  // Clinical-supply Track D guard: when a JD is clearly regulated clinical
+  // Clinical-supply D_SUPPORT guard: when a JD is clearly regulated clinical
   // supply coordination (Almac-shape), soft-generic analytics wording like
-  // "reports", "project coordinator", "data" can over-pull Track D. This
-  // guard applies a multiplier to Track D's raw score when the clinical /
-  // regulated supply signal count is high enough that Track D cannot be the
-  // right answer. Kept as a soft multiplier (not a hard zero) so genuinely
-  // analytics-focused clinical-analytics roles can still win D if their own
-  // signals are strong.
+  // "reports", "project coordinator", "data" can over-pull D_SUPPORT. This
+  // guard applies a multiplier to D_SUPPORT raw score when the clinical /
+  // regulated supply signal count is high enough that analytics is unlikely
+  // to be the primary track. Kept as a soft multiplier (not a hard zero) so
+  // genuinely analytics-focused clinical roles can still win D_SUPPORT if
+  // their own signals are strong.
   clinicalSupplyTrackDGuard: {
     // Phrases from this list that hit (case-insensitive, per-phrase cap 3)
     // count toward the regulated-clinical-supply signal total.
@@ -221,6 +227,11 @@ export const SCORING = {
       "monitor expiry",
       "batch traceability",
       "fefo",
+      "batch release",
+      "gdp",
+      "good distribution practice",
+      "serialization",
+      "quarantine",
     ],
     regulatedHitThreshold: 3,
     trackDPenaltyMultiplier: 0.7,
@@ -242,7 +253,6 @@ export const SCORING = {
 export type Recommendation =
   | "Strong Apply"
   | "Apply"
-  | "Apply (Transferable)"
   | "Stretch"
   | "Skip";
 

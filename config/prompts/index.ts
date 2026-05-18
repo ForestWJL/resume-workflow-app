@@ -17,18 +17,35 @@ export interface TrackPromptPackage {
   round3: string;
 }
 
+function coercePrompt(
+  p: TrackPromptPackage | string,
+  sourceFile: string,
+  displayName: string
+): TrackPromptPackage {
+  if (typeof p === "string") {
+    return {
+      sourceFile,
+      displayName,
+      round1: p,
+      round2: p,
+      round3: p,
+    };
+  }
+  return p;
+}
+
 export const PROMPTS: Record<TrackId, TrackPromptPackage> = {
-  A_PMC: A_PMC_PROMPT,
+  A_PMC: coercePrompt(A_PMC_PROMPT, "A_PMC", "A_PMC"),
 
-  A_REGULATED: A_REGULATED_PROMPT,
+  A_REGULATED: coercePrompt(A_REGULATED_PROMPT, "A_REGULATED", "A_REGULATED"),
 
-  AB_HYBRID: AB_HYBRID_PROMPT,
+  AB_HYBRID: coercePrompt(AB_HYBRID_PROMPT, "AB_HYBRID", "AB_HYBRID"),
 
-  AC_DEMAND: AC_DEMAND_PROMPT,
+  AC_DEMAND: coercePrompt(AC_DEMAND_PROMPT, "AC_DEMAND", "AC_DEMAND"),
 
-  CB_BUYER: CB_BUYER_PROMPT,
+  CB_BUYER: coercePrompt(CB_BUYER_PROMPT, "CB_BUYER", "CB_BUYER"),
 
-  D_SUPPORT: D_SUPPORT_PROMPT,
+  D_SUPPORT: coercePrompt(D_SUPPORT_PROMPT, "D_SUPPORT", "D_SUPPORT"),
 };
 
 // Optional shared polish pass

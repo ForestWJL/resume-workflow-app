@@ -1,8 +1,9 @@
 # Resume Workflow — V1 (local MVP)
 
 A calm, Apple-inspired local assistant for routing job descriptions through
-your Track A / B / C / D resume system, generating the right prompt package,
-and keeping verified facts in a Memory Bank.
+your six-track resume system (A_PMC, A_REGULATED, AB_HYBRID, AC_DEMAND,
+CB_BUYER, D_SUPPORT), generating the right prompt package, and keeping verified
+facts in a Memory Bank.
 
 > V1 is intentionally a **workflow assistant**, not an autonomous agent.
 > No web scraping. No API calls. No automation. All data lives in
@@ -14,7 +15,7 @@ and keeping verified facts in a Memory Bank.
 
 | Route         | What it does                                                                                 |
 | ------------- | -------------------------------------------------------------------------------------------- |
-| `/router`     | Paste a JD → classify into Track A / B / C / D → worth-apply score, gaps, recommendation     |
+| `/router`     | Paste a JD → classify into a track → worth-apply score, gaps, recommendation (Strong Apply / Apply / Stretch / Skip) |
 | `/workflow`   | Loads the latest routing → shows confirmed file stack + Round 1 / 2 / QA prompts ready to copy |
 | `/memory`     | Edit verified experience facts, project facts, reusable wording, metrics to verify, track notes |
 | `/library`    | Read-only view of the file-role setup grouped by track and by file role                       |
@@ -34,7 +35,7 @@ resume-workflow-app/
 ├── components/
 │   ├── ui/                     # shadcn-style primitives (Button, Card, Badge, Textarea, Tabs, Input, Label, Separator)
 │   ├── Nav.tsx                 # Top nav with active-route highlight
-│   ├── TrackBadge.tsx          # A / B / C / D pill with per-track colour
+│   ├── TrackBadge.tsx          # TrackId pill with per-track colour
 │   ├── ScoreMeter.tsx          # Big number + thin progress bar
 │   ├── ConfidenceBar.tsx       # Per-track distribution bar
 │   ├── KeywordChips.tsx        # Match / gap chip list
@@ -47,11 +48,14 @@ resume-workflow-app/
 │   ├── fileStacks.ts           # Format template / content master / evidence bank / supporting reference per track
 │   ├── memorySeed.ts           # Seed data for the Memory Bank (from the uploaded MDs)
 │   └── prompts/
-│       ├── index.ts            # Registry + shared ChatGPT refine prompt
-│       ├── trackA.ts           # Pharma / Medtech / Regional SCM — Round 1 / 2 / 3
-│       ├── trackB.ts           # Purchasing / Procurement Support
-│       ├── trackC.ts           # FMCG / Retail / Replenishment
-│       └── trackD.ts           # Analytics / Operations / AI-Enabled
+│   └── prompts/
+│       ├── index.ts            # Registry: one prompt package per TrackId
+│       ├── A_PMC.ts            # Pharma / medtech supply planning
+│       ├── A_REGULATED.ts      # Regulated supply chain / GMP-adjacent
+│       ├── AB_HYBRID.ts        # Planning + procurement hybrid
+│       ├── AC_DEMAND.ts        # Demand / replenishment / forecasting
+│       ├── CB_BUYER.ts         # Buyer / procurement / sourcing
+│       └── D_SUPPORT.ts        # Analytics / reporting / KPI
 ├── lib/
 │   ├── types.ts                # Shared types (RoutingResult, WorkflowSession, MemoryBank)
 │   ├── classify.ts             # Keyword-weighted JD classifier + confidence
@@ -99,14 +103,12 @@ All the rules live in `config/`:
 
 - **Add a keyword** to a track → edit `config/tracks.ts` (push to
   `titleSignals` / `domainSignals` / `functionalSignals` / `toolSignals`).
-- **Change how strictly a role needs to match to be "Deep Tailor"** →
-  edit `config/scoring.ts` (`recommendation.deepTailor`,
-  `.lightTailor`, `.practiceOnly`).
+- **Change recommendation thresholds** → edit `config/scoring.ts`
+  (`recommendationWithContext` bands and confidence settings in `SCORING`).
 - **Rename a reference file** → edit `config/fileStacks.ts` once; it
   propagates to the Router, Workflow, and Library pages.
-- **Tune the prompt for one track** → edit `config/prompts/trackX.ts`.
-  The Workflow page renders whatever string is exported from
-  `round1` / `round2` / `round3`.
+- **Tune the prompt for one track** → edit `config/prompts/<TrackId>.ts`.
+  The Workflow page renders whatever string is exported from that package.
 
 ## Keyboard / UX niceties
 
@@ -114,7 +116,7 @@ All the rules live in `config/`:
 - Routing history shows the last 50 routings with a one-click “View”.
 - Override the auto-selected track from the Router page (big blue panel
   after you run a routing).
-- Track D memory handles portfolio projects with honest status labels
+- D_SUPPORT-oriented memory handles portfolio projects with honest status labels
   (Completed / Prototype / In Progress / Concept) so the resume never
   overstates a project's maturity.
 

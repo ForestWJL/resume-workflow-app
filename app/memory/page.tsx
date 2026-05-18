@@ -782,7 +782,7 @@ function TrackTagPicker({
           <button
             key={t}
             type="button"
-            onClick={() => toggle(t)}
+            onClick={() => toggle(t as TrackId)}
             className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition ${
               active
                 ? "border-ink-900 bg-ink-900 text-white"

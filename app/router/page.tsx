@@ -403,7 +403,7 @@ export default function RouterPage() {
                     Best positioning
                   </p>
                   <p className="mt-1 text-sm leading-relaxed text-ink-800">
-                    {TRACKS[result.selectedTrack].positioning}
+                    {TRACKS[result.selectedTrack].name}
                   </p>
                 </div>
                 <div>

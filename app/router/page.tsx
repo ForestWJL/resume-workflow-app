@@ -54,11 +54,12 @@ export default function RouterPage() {
     const r = scoreJD({ jdText: jd, memoryBank: mem });
     console.log("PROMPT MODE:", r.promptMode);
     console.log(
-      buildPrompt({
-        mode: r.promptMode,
-        jdText: r.jdText,
-      })
-    );
+    buildPrompt(
+      r.track,
+      r.promptMode,
+      r.jdText
+    )
+  );
     saveRoutingResult(r);
     setLastActiveRoutingId(r.id);
     setResult(r);

@@ -329,7 +329,7 @@ export default function WorkflowPage() {
                   key={t}
                   size="sm"
                   variant={t === activeTrack ? "default" : "outline"}
-                  onClick={() => setConfirmedTrack(t)}
+                  onClick={() => setConfirmedTrack(t as TrackId)}
                 >
                   Track {t}
                 </Button>

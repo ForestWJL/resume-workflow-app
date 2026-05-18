@@ -337,7 +337,7 @@ export default function WorkflowPage() {
             </div>
             {trackCfg ? (
               <p className="text-xs leading-relaxed text-ink-500">
-                {trackCfg.summary}
+                {trackCfg.name}
               </p>
             ) : null}
           </CardContent>

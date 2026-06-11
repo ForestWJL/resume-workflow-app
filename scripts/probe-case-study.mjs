@@ -94,6 +94,8 @@ const checks = [
   { name: "Nav: Knowledge", re: /label: "Knowledge"/, src: navSrc },
   { name: "Nav: Resources", re: /label: "Resources"/, src: navSrc },
   { name: "Brand mark uses new title", re: /AI-Assisted Opportunity Screening/, src: navSrc },
+  { name: "Nav: Back-to-Portfolio link present", re: /Back to Portfolio/, src: navSrc },
+  { name: "Nav: Portfolio href correct", re: /https:\/\/forestwang-portfolio\.netlify\.app/, src: navSrc },
 
   // Layout metadata
   { name: "Layout title swapped", re: /title:\s*"AI-Assisted Opportunity Screening/, src: layoutSrc },

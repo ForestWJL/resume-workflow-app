@@ -18,6 +18,7 @@ import { ScoreMeter } from "@/components/ScoreMeter";
 import { StatChip } from "@/components/StatChip";
 import { ConfidenceBar } from "@/components/ConfidenceBar";
 import { KeywordChips } from "@/components/KeywordChips";
+import { PipelineStageBadge } from "@/components/case-study/PipelineStageBadge";
 import { scoreJD } from "@/lib/score";
 import { buildPrompt } from "@/lib/buildPrompt";
 import {
@@ -116,34 +117,31 @@ export default function RouterPage() {
     <div className="flex flex-col gap-8">
       {/* Hero */}
       <section className="flex flex-col gap-3">
-        <Badge variant="muted" className="self-start">
-          Page 1 · JD Router
-        </Badge>
+        <PipelineStageBadge stages="3–5" label="Screen → Sort → Prioritise" />
         <h1 className="text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
-          Paste a job description. Get a clean routing plan.
+          Paste an incoming opportunity. See how the workflow handles it.
         </h1>
         <p className="max-w-2xl text-sm text-ink-500 sm:text-base">
-          The router classifies the role into one of six tracks (A_PMC,
-          A_REGULATED, AB_HYBRID, AC_DEMAND, CB_BUYER, D_SUPPORT), scores whether
-          it is worth applying, and tells you exactly which file stack and prompt
-          to use next.
+          One opportunity through the live decision engine. Each week the
+          full workflow runs this for ~49 unique items extracted from ~196
+          raw alerts across six channels.
         </p>
       </section>
 
       {/* Input + Run */}
       <Card>
         <CardHeader>
-          <CardTitle>Job description</CardTitle>
+          <CardTitle>Incoming opportunity</CardTitle>
           <CardDescription>
-            Paste the full JD text. The more you include, the sharper the
-            routing will be.
+            Paste the full text. The more context the workflow can read, the
+            sharper the screening will be.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
             value={jd}
             onChange={(e) => setJd(e.target.value)}
-            placeholder="Paste the job description here…"
+            placeholder="Paste an incoming opportunity — a job description, an RFQ, an escalation ticket, any structured incoming request…"
             className="min-h-[220px]"
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -246,7 +244,7 @@ export default function RouterPage() {
             <CardContent className="space-y-6">
               <div className="grid gap-5 sm:grid-cols-3">
                 <ScoreMeter
-                  label="Worth applying"
+                  label="Opportunity priority"
                   value={result.worthApplyingScore}
                   hint={result.recommendation}
                   size="lg"
@@ -305,7 +303,7 @@ export default function RouterPage() {
           {result.reasoningSummary || result.runnerUp || result.topMatchedSignals ? (
             <Card>
               <CardHeader>
-                <CardTitle>Why this track won</CardTitle>
+                <CardTitle>How this opportunity was sorted</CardTitle>
                 <CardDescription>
                   Plain-English breakdown of which signals drove the classifier —
                   so you can sanity-check before committing to this track.
@@ -391,7 +389,7 @@ export default function RouterPage() {
             {/* Positioning + ATS keywords */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Positioning & ATS keywords</CardTitle>
+                <CardTitle>Positioning &amp; coverage</CardTitle>
                 <CardDescription>
                   What to emphasise and what to verify before applying.
                 </CardDescription>
@@ -442,7 +440,7 @@ export default function RouterPage() {
             {/* File stack */}
             <Card>
               <CardHeader>
-                <CardTitle>Recommended file stack</CardTitle>
+                <CardTitle>Response materials</CardTitle>
                 <CardDescription>
                   Upload these to the new chat for the selected track.
                 </CardDescription>
@@ -478,23 +476,23 @@ export default function RouterPage() {
             <CardHeader>
               <CardTitle>Next step</CardTitle>
               <CardDescription>
-                Routing is saved. Walk it through the workflow in three moves.
+                Decision saved. Walk it through the workflow in three moves.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="grid gap-3 md:grid-cols-3">
                 <HandoffStep
                   n={1}
-                  title="Review routing"
-                  body={`Confirmed as ${TRACKS[result.selectedTrack].name}${
+                  title="Review the decision"
+                  body={`Sorted as ${TRACKS[result.selectedTrack].name}${
                     result.variantName ? ` · ${result.variantName}` : ""
                   }. ${result.recommendation}.`}
                   done
                 />
                 <HandoffStep
                   n={2}
-                  title="Open Workflow Assistant"
-                  body="Grab the confirmed file stack and run Round 1 → Round 2 → QA → Round 3."
+                  title="Open the response workflow"
+                  body="Grab the response materials and walk through Step 1 → Step 2 → QA → Step 4."
                   cta={
                     <Link
                       href={`/workflow?routingId=${result.id}`}
@@ -508,12 +506,12 @@ export default function RouterPage() {
                 />
                 <HandoffStep
                   n={3}
-                  title="Update Memory after"
-                  body="Save verified bullets + flag metrics to verify. Keeps your next routing sharper."
+                  title="Update the knowledge base"
+                  body="Save verified bullets and flag numbers to confirm. Keeps the next decision sharper."
                   cta={
                     <Link href="/memory">
                       <Button variant="outline" size="sm">
-                        Open Memory Bank
+                        Open Knowledge Base
                       </Button>
                     </Link>
                   }
@@ -543,7 +541,7 @@ export default function RouterPage() {
               </div>
               <div>
                 <span className="text-[10px] font-medium uppercase tracking-wide text-ink-500">
-                  Tracker tag
+                  Decision reference
                 </span>
                 <div className="mt-1 rounded-xl border border-ink-100 bg-ink-50/60 px-4 py-3 font-mono text-xs text-ink-800">
                   {result.trackerTag}
@@ -559,7 +557,7 @@ export default function RouterPage() {
       {history.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Recent routings</CardTitle>
+            <CardTitle>Decision history</CardTitle>
             <CardDescription>
               Last 50 routing results saved locally.
             </CardDescription>

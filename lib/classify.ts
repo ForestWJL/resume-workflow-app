@@ -1,8 +1,11 @@
 import { TRACKS, type TrackConfig, type TrackId } from "../config/tracks";
 import { SCORING } from "../config/scoring";
 import type {
+  AnalystTitleGuardDecision,
   Confidence,
+  OperationsExecutionOverrideDecision,
   ScoreBreakdown,
+  TrackDOwnershipDecision,
   TrackProfileBoostDecision,
 } from "./types";
 
@@ -250,6 +253,141 @@ function applyTrackProfileBoosts(
   };
 }
 
+/* ───── Operations / Coordination / Execution-Ownership override (Rule 2 + 4) ───── */
+
+function countExecutionOwnershipSignals(jd: string): {
+  hits: number;
+  matched: string[];
+} {
+  const matched: string[] = [];
+  for (const kw of SCORING.operationsExecutionOverride.executionOwnershipSignals) {
+    if (countOccurrences(jd, kw) > 0) matched.push(kw);
+  }
+  return { hits: matched.length, matched };
+}
+
+function applyOperationsExecutionOverride(
+  jd: string,
+  breakdown: ScoreBreakdown[]
+): OperationsExecutionOverrideDecision {
+  const cfg = SCORING.operationsExecutionOverride;
+  const { hits, matched } = countExecutionOwnershipSignals(jd);
+  const active = hits >= cfg.thresholdHits;
+
+  // Rule 4 safeguard: when the JD is clearly regulated supply (≥ threshold
+  // hits in the curated regulatedPlanningSignals list, which includes GMP /
+  // clinical trial supplies / drug product / batch release / cold chain
+  // etc.), do NOT penalise A_REGULATED. The role is genuinely regulated
+  // execution; the override only redirects A_PMC and boosts AB_HYBRID.
+  const regulatedHits = countRegulatedPlanningHits(jd);
+  const regulatedSafeguardBlockedARegulated =
+    regulatedHits >= cfg.regulatedSafeguardThreshold;
+
+  const apmc = breakdown.find((b) => b.trackId === "A_PMC");
+  const areg = breakdown.find((b) => b.trackId === "A_REGULATED");
+  const abh = breakdown.find((b) => b.trackId === "AB_HYBRID");
+
+  let abHybridBoosted = false;
+  let trackAPmcPenalised = false;
+  let trackARegulatedPenalised = false;
+
+  if (active) {
+    if (abh) {
+      abh.rawScore *= cfg.abHybridBoostMultiplier;
+      abh.operationsExecutionOverrideApplied = true;
+      abHybridBoosted = true;
+    }
+    if (apmc && apmc.rawScore > 0) {
+      apmc.rawScore *= cfg.trackAPmcPenaltyMultiplier;
+      apmc.operationsExecutionOverrideApplied = true;
+      trackAPmcPenalised = true;
+    }
+    if (areg && areg.rawScore > 0 && !regulatedSafeguardBlockedARegulated) {
+      areg.rawScore *= cfg.trackARegulatedPenaltyMultiplier;
+      areg.operationsExecutionOverrideApplied = true;
+      trackARegulatedPenalised = true;
+    }
+  }
+
+  return {
+    active,
+    hits,
+    matchedSignals: matched,
+    regulatedHits,
+    regulatedSafeguardBlockedARegulated,
+    abHybridBoosted,
+    trackAPmcPenalised,
+    trackARegulatedPenalised,
+  };
+}
+
+/* ───── D_SUPPORT ownership restriction (Rule 3) ───── */
+
+function applyTrackDOwnershipRestriction(
+  hits: number,
+  breakdown: ScoreBreakdown[]
+): TrackDOwnershipDecision {
+  const cfg = SCORING.trackDOwnershipRestriction;
+  const active = hits >= cfg.thresholdHits;
+
+  const trackD = breakdown.find((b) => b.trackId === "D_SUPPORT");
+  let trackDPenaltyApplied = false;
+
+  if (active && trackD && trackD.rawScore > 0) {
+    trackD.rawScore *= cfg.trackDPenaltyMultiplier;
+    trackD.trackDOwnershipRestrictionApplied = true;
+    trackDPenaltyApplied = true;
+  }
+
+  return {
+    active,
+    hits,
+    trackDPenaltyApplied,
+  };
+}
+
+/* ───── Analyst-title guard for D_SUPPORT (Rule 5) ───── */
+
+function applyAnalystTitleGuard(
+  breakdown: ScoreBreakdown[]
+): AnalystTitleGuardDecision {
+  const cfg = SCORING.analystTitleGuard;
+  const trackD = breakdown.find((b) => b.trackId === "D_SUPPORT");
+
+  if (!trackD || trackD.rawScore <= 0 || trackD.title <= 0) {
+    return {
+      active: false,
+      trackDTitleShare: 0,
+      bestCompetingFunctional: 0,
+      trackDPenaltyApplied: false,
+    };
+  }
+
+  const trackDTitleShare = trackD.title / trackD.rawScore;
+  const bestCompetingFunctional = breakdown.reduce((max, b) => {
+    if (b.trackId === "D_SUPPORT") return max;
+    return Math.max(max, b.functional);
+  }, 0);
+
+  const active =
+    trackDTitleShare >= cfg.titleShareThreshold &&
+    bestCompetingFunctional >= cfg.competingFunctionalThreshold;
+
+  let trackDPenaltyApplied = false;
+  if (active) {
+    trackD.rawScore *= cfg.trackDPenaltyMultiplier;
+    trackD.analystTitleGuardApplied = true;
+    trackDPenaltyApplied = true;
+  }
+
+  return {
+    active,
+    trackDTitleShare,
+    bestCompetingFunctional,
+    trackDPenaltyApplied,
+  };
+}
+
 /* ───── Clinical-supply D_SUPPORT guard ───── */
 
 export interface ClinicalSupplyGuardDecision {
@@ -278,6 +416,9 @@ export function classifyJD(jdText: string): {
   supportShape: SupportShapeDecision;
   clinicalSupplyGuard: ClinicalSupplyGuardDecision;
   trackProfileBoosts: TrackProfileBoostDecision;
+  operationsExecutionOverride: OperationsExecutionOverrideDecision;
+  trackDOwnership: TrackDOwnershipDecision;
+  analystTitleGuard: AnalystTitleGuardDecision;
 } {
   const jd = normalise(jdText);
   const breakdown: ScoreBreakdown[] = (
@@ -290,6 +431,30 @@ export function classifyJD(jdText: string): {
   // After per-track raw scores are computed but before sorting, adjust A_PMC
   // and CB_BUYER based on role shape (support vs ownership / buying execution).
   const supportShape = applySupportShapeAdjustment(jd, breakdown);
+
+  // ─── Operations / coordination / execution-ownership override (Rule 2 + 4) ─
+  // When the JD shows real execution-ownership signals, redirect away from
+  // A_PMC (which is otherwise pulled by inventory / warehouse / ERP keywords)
+  // toward AB_HYBRID. A_REGULATED is penalised only when not clearly regulated
+  // supply (regulatedSafeguard reuses the curated regulatedPlanningSignals).
+  const operationsExecutionOverride = applyOperationsExecutionOverride(
+    jd,
+    breakdown
+  );
+
+  // ─── D_SUPPORT ownership restriction (Rule 3) ──────────────────────────────
+  // D_SUPPORT can only win when there is NO operations / coordination /
+  // execution ownership in the JD. Re-uses execution-ownership signal count
+  // computed above (lower threshold = stricter restriction).
+  const trackDOwnership = applyTrackDOwnershipRestriction(
+    operationsExecutionOverride.hits,
+    breakdown
+  );
+
+  // ─── Analyst-title guard (Rule 5) ──────────────────────────────────────────
+  // "Analyst" in the title pulls D_SUPPORT title points. If D_SUPPORT's win is
+  // largely title-driven and another track is function-strong, penalise D.
+  const analystTitleGuard = applyAnalystTitleGuard(breakdown);
 
   // ─── Clinical-supply D_SUPPORT guard ──────────────────────────────────────
   // When the JD is clearly regulated clinical supply coordination, soft-
@@ -332,6 +497,9 @@ export function classifyJD(jdText: string): {
     supportShape,
     clinicalSupplyGuard,
     trackProfileBoosts,
+    operationsExecutionOverride,
+    trackDOwnership,
+    analystTitleGuard,
   };
 }
 

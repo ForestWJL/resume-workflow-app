@@ -24,6 +24,7 @@ import {
   saveWorkflowSession,
   setLastActiveRoutingId,
 } from "@/lib/storage";
+import { PipelineStageBadge } from "@/components/case-study/PipelineStageBadge";
 import { PROMPTS, CHATGPT_REFINE_PROMPT } from "@/config/prompts";
 import { FILE_STACKS } from "@/config/fileStacks";
 import { TRACKS, TRACK_ORDER, type TrackId } from "@/config/tracks";
@@ -247,9 +248,7 @@ export default function WorkflowPage() {
     <div className="flex flex-col gap-10">
       {/* ───── Hero ───── */}
       <section className="flex flex-col gap-4">
-        <Badge variant="muted" className="self-start">
-          Page 2 · Resume Workflow Assistant
-        </Badge>
+        <PipelineStageBadge stages="6" label="Route the workflow" />
         <div className="flex flex-wrap items-center gap-2">
           <TrackBadge
             trackId={activeTrack ?? routing.selectedTrack}
@@ -257,11 +256,11 @@ export default function WorkflowPage() {
             size="lg"
           />
           {variantName ? (
-            <Badge variant="muted">Variant · {variantName}</Badge>
+            <Badge variant="muted">Sub-type · {variantName}</Badge>
           ) : null}
           <Badge variant="accent">{routing.recommendation}</Badge>
           <Badge variant="muted">
-            Worth applying · {routing.worthApplyingScore}
+            Priority · {routing.worthApplyingScore}
           </Badge>
           {session ? (
             <Badge variant="success">Status · {session.trackerStatus}</Badge>
@@ -273,16 +272,15 @@ export default function WorkflowPage() {
           {routing.jdTitleGuess}
         </h1>
         <p className="max-w-2xl text-sm text-ink-500">
-          Your handoff workspace. Confirm the track, grab the file stack, then
-          run the prompt playbook in order. Everything you paste into Claude or
-          ChatGPT lives here.
+          Build the tailored response in four steps. The operator owns each
+          decision; AI does the structured language work.
         </p>
 
         {/* Hero CTA row — one visually primary next action. Secondary
             actions stay as ghost buttons so the eye lands on Round 1 first. */}
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <Button variant="primary" onClick={onCopyRound1}>
-            {round1Copied ? "✓ Round 1 copied" : "Copy Round 1 prompt"}
+            {round1Copied ? "✓ Step 1 copied" : "Copy Step 1 — Build response"}
           </Button>
           <Link href="/router">
             <Button variant="ghost">← Back to Router</Button>
@@ -317,9 +315,9 @@ export default function WorkflowPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Confirmed track</CardTitle>
+            <CardTitle>Matched category</CardTitle>
             <CardDescription>
-              Override if your read differs from the router.
+              Re-route to a different category if your read differs.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -347,7 +345,7 @@ export default function WorkflowPage() {
           <CardHeader>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <CardTitle>Confirmed file stack</CardTitle>
+                <CardTitle>Response materials</CardTitle>
                 <CardDescription>
                   Upload these in order into your new Claude / ChatGPT chat.
                 </CardDescription>
@@ -404,17 +402,17 @@ export default function WorkflowPage() {
         </Card>
       </div>
 
-      {/* ───── Row 2 · Prompt playbook ───── */}
+      {/* ───── Row 2 · Response playbook ───── */}
       {prompt ? (
         <section className="flex flex-col gap-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-lg font-semibold tracking-tight text-ink-900">
-                Prompt playbook
+                Response playbook
               </h2>
               <p className="mt-1 text-sm text-ink-500">
-                Run these in order. Each step maps to a session status and
-                saves automatically when you mark it done.
+                Work through the four steps in order. Each step is marked done
+                when you complete it.
               </p>
               <p className="mt-1 text-[11px] uppercase tracking-wide text-ink-400">
                 Source · <span className="font-mono normal-case">{prompt.sourceFile}</span>
@@ -422,7 +420,7 @@ export default function WorkflowPage() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={onCopyAll}>
-                {allCopied ? "✓ Copied" : "Copy all prompts"}
+                {allCopied ? "✓ Copied" : "Copy all four steps"}
               </Button>
             </div>
           </div>
@@ -430,46 +428,46 @@ export default function WorkflowPage() {
           <PromptBlock
             stepNumber={1}
             tone="round1"
-            title="Claude · Round 1 — McKinsey-style tailor"
-            description="Paste after uploading the file stack + target JD."
+            title="Step 1 — Build the tailored response"
+            description="Paste after loading the response materials and the original request."
             text={prompt.round1}
-            meta={`Track ${activeTrack} · ${prompt.displayName}`}
+            meta={`Category · ${prompt.displayName}`}
             done={stepDone("round1")}
             onMarkDone={() => markStepDone("round1")}
-            markDoneLabel="Mark Round 1 drafted"
+            markDoneLabel="Mark Step 1 done"
           />
           <PromptBlock
             stepNumber={2}
             tone="round2"
-            title="Claude · Round 2 — conservative refinement"
-            description="Use after Round 1 draft. No re-analysis of the JD."
+            title="Step 2 — Refine without rewriting"
+            description="Use after Step 1 draft. No re-analysis of the request."
             text={prompt.round2}
-            meta={`Track ${activeTrack} · Round 2`}
+            meta="Refine"
             done={stepDone("round2")}
             onMarkDone={() => markStepDone("round2")}
-            markDoneLabel="Mark Round 2 refined"
+            markDoneLabel="Mark Step 2 done"
           />
           <PromptBlock
             stepNumber={3}
             tone="qa"
-            title="ChatGPT · QA / refine pass"
-            description="Recruiter readability + ATS + grammar. Shared across tracks."
+            title="Step 3 — Independent QA pass"
+            description="Readability + coverage + grammar. Independent reviewer."
             text={CHATGPT_REFINE_PROMPT}
-            meta="Shared across tracks"
+            meta="Shared across categories"
             done={stepDone("qa")}
             onMarkDone={() => markStepDone("qa")}
-            markDoneLabel="Mark QA done"
+            markDoneLabel="Mark Step 3 done"
           />
           <PromptBlock
             stepNumber={4}
             tone="round3"
-            title="Claude · Round 3 QA — track-specific"
-            description="Final ATS reviewer + recruiter QA pass."
+            title="Step 4 — Final quality check"
+            description="Final reviewer pass before sending."
             text={prompt.round3}
-            meta={`Track ${activeTrack} · Round 3`}
+            meta="Final"
             done={stepDone("round3")}
             onMarkDone={() => markStepDone("round3")}
-            markDoneLabel="Mark Round 3 done"
+            markDoneLabel="Mark Step 4 done"
           />
         </section>
       ) : null}
@@ -478,7 +476,7 @@ export default function WorkflowPage() {
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Session status</CardTitle>
+            <CardTitle>Workflow status</CardTitle>
             <CardDescription>
               Marked automatically as you complete prompt steps — override any
               time.
@@ -534,7 +532,7 @@ export default function WorkflowPage() {
         <CardHeader>
           <div className="flex items-start justify-between gap-3">
             <div>
-              <CardTitle>Source JD</CardTitle>
+              <CardTitle>Original request</CardTitle>
               <CardDescription>
                 Read-only — kept with this session.
               </CardDescription>

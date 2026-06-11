@@ -73,7 +73,7 @@ export default function MemoryPage() {
     return (
       <div>
         <Badge variant="muted" className="mb-3">
-          Page 3 · Memory Bank
+          Knowledge Base
         </Badge>
         <p className="text-sm text-ink-500">Loading memory…</p>
       </div>
@@ -126,16 +126,16 @@ export default function MemoryPage() {
       {/* ───── Hero ───── */}
       <section className="flex flex-col gap-3">
         <Badge variant="muted" className="self-start">
-          Page 3 · Memory Bank
+          Knowledge Base
         </Badge>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
-              Memory Bank
+              Knowledge Base
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-ink-500">
-              Single source of truth for your verified facts, reusable wording,
-              and guardrails. Edits save to this browser.
+              Verified facts, reusable wording, and guardrails. Keeps every
+              decision and response consistent. Saved on your device.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export default function MemoryPage() {
         {/* ─── FLAGS ─── */}
         <TabsContent value="flags" className="grid gap-6 lg:grid-cols-2">
           <StringList
-            title="Metrics to verify later"
+            title="Numbers to confirm before sending"
             description="Numbers you haven't confirmed yet — treat as 'metric to verify'."
             items={mem.metricsToVerify}
             onChange={(v) => update("metricsToVerify", v)}
@@ -241,7 +241,7 @@ export default function MemoryPage() {
             search={q}
           />
           <StringList
-            title="Do not save yet"
+            title="Off-limits until verified"
             description="Claims that aren't proven — keep out of the resume for now."
             items={mem.doNotSaveYet}
             onChange={(v) => update("doNotSaveYet", v)}
@@ -257,7 +257,7 @@ export default function MemoryPage() {
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <CardTitle>Track-specific notes</CardTitle>
+                  <CardTitle>Category notes</CardTitle>
                   <CardDescription>
                     One paragraph per track — your running coach-style reminders.
                   </CardDescription>
@@ -446,7 +446,7 @@ function FactsPane({
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <CardTitle>Experience facts</CardTitle>
+                  <CardTitle>Operator facts</CardTitle>
                   <CardDescription>
                     Anchor statements by company. Point to these in interviews
                     without overstating.
@@ -495,7 +495,7 @@ function FactsPane({
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <CardTitle>Project facts</CardTitle>
+                  <CardTitle>Project portfolio</CardTitle>
                   <CardDescription>
                     Portfolio / prototype / concept projects. Label status
                     honestly.

@@ -3,9 +3,9 @@ import "./globals.css";
 import { Nav } from "@/components/Nav";
 
 export const metadata: Metadata = {
-  title: "Resume Workflow",
+  title: "AI-Assisted Opportunity Screening",
   description:
-    "A calm, focused assistant for routing job descriptions and running a structured resume tailoring workflow.",
+    "Applying supply chain prioritisation and workflow routing principles to high-volume job opportunities. A workflow automation and decision-support case study.",
 };
 
 export default function RootLayout({
@@ -21,7 +21,8 @@ export default function RootLayout({
           {children}
         </main>
         <footer className="mx-auto max-w-6xl px-6 pb-12 pt-6 text-xs text-ink-400">
-          Resume Workflow · V1 · local assistant · no external calls yet
+          AI-Assisted Opportunity Screening · runs entirely on your device ·
+          no external calls
         </footer>
       </body>
     </html>

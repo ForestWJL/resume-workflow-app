@@ -237,6 +237,105 @@ export const SCORING = {
     trackDPenaltyMultiplier: 0.7,
   },
 
+  // ─── Classifier upgrade — Rules 1–6 (function-priority classification) ──────
+  // These blocks layer ON TOP of the keyword scorer. They never rewrite the
+  // per-track keyword lists in tracks.ts — they only adjust raw scores after
+  // base scoring so coordination / execution-ownership roles route correctly
+  // and analyst-titled planning roles don't get mis-sent to D_SUPPORT.
+  //
+  // Rule 1 — Function priority: function weight (4) already exceeds title (3),
+  //   domain (3), tool (1) in `weights` above. No additional knob needed.
+  // Rule 6 — Final priority order: function > ownership-level (title + role-
+  //   shape) > environment (domain) > tools. The weight ordering above + the
+  //   operationsExecutionOverride / trackDOwnershipRestriction / analystTitleGuard
+  //   blocks below enforce this in practice.
+
+  // Rule 2 — Operations / Coordination / Execution Ownership override.
+  // When a JD shows real execution-ownership signals (owns execution, vendor
+  // follow-up, shipment coordination, multi-workstream coordination, issue
+  // escalation / resolution), the role belongs to AB_HYBRID — even if inventory
+  // / warehouse / stock / ERP keywords are present. Without this, A_PMC pulls
+  // wins purely from environment keywords.
+  //
+  // The regulatedSafeguard preserves the earlier Almac fix: if the JD is
+  // genuinely a regulated-clinical-supply role (≥ regulatedSafeguardThreshold
+  // hits in supportShape.regulatedPlanningSignals), A_REGULATED is NOT
+  // penalised — the role is regulated execution, not generic execution.
+  operationsExecutionOverride: {
+    executionOwnershipSignals: [
+      "owns execution",
+      "own execution",
+      "owns the execution",
+      "execution ownership",
+      "runs independently",
+      "run independently",
+      "operate independently",
+      "operates independently",
+      "manages multiple workstreams",
+      "manage multiple workstreams",
+      "multiple workstreams",
+      "multi workstream",
+      "multi-workstream",
+      "vendor follow-up",
+      "vendor follow up",
+      "vendor following up",
+      "supplier follow-up",
+      "supplier follow up",
+      "shipment coordination",
+      "coordinate shipments",
+      "coordinating shipments",
+      "documentation handling",
+      "handle documentation",
+      "handling documentation",
+      "issue escalation",
+      "escalate issues",
+      "escalating issues",
+      "escalation and resolution",
+      "issue resolution",
+      "resolve issues",
+      "stakeholder coordination",
+      "cross-functional coordination",
+      "cross functional coordination",
+    ],
+    // This many distinct execution-ownership phrases hit (per-phrase cap 3
+    // shared with the keyword scorer) → override is "active".
+    thresholdHits: 3,
+    // Multipliers when override is active and the relevant safeguard does NOT block.
+    abHybridBoostMultiplier: 1.5,
+    trackAPmcPenaltyMultiplier: 0.55,
+    trackARegulatedPenaltyMultiplier: 0.7,
+    // Safeguard for Rule 4: when the JD has ≥ this many hits in
+    // supportShape.regulatedPlanningSignals (the curated regulated/clinical
+    // supply phrase list — including GMP, clinical trial supplies, drug
+    // product, FEFO, batch release, etc.), the override does NOT penalise
+    // A_REGULATED. The Almac JD scores 10+ hits here and stays regulated.
+    regulatedSafeguardThreshold: 3,
+  },
+
+  // Rule 3 — D_SUPPORT can only win when the role is genuinely
+  // reporting / analytics — no operations ownership, no coordination
+  // ownership, no execution responsibility. When execution-ownership
+  // signals appear (same list as Rule 2) above this threshold, soft-
+  // penalise D_SUPPORT regardless of how many "reports / dashboard" keywords
+  // the JD also contains. Lower threshold than Rule 2 because this is a
+  // restriction, not a redirect.
+  trackDOwnershipRestriction: {
+    // Uses operationsExecutionOverride.executionOwnershipSignals.
+    thresholdHits: 2,
+    trackDPenaltyMultiplier: 0.5,
+  },
+
+  // Rule 5 — Analyst title handling. D_SUPPORT.titleSignals includes the
+  // bare token "analyst", which can pull title hits from JDs like "Supply
+  // Chain Analyst — Planning". When D_SUPPORT's raw score is dominated by
+  // title contribution AND any other track has a meaningful functional
+  // score, soft-penalise D_SUPPORT so the function-led track wins.
+  analystTitleGuard: {
+    titleShareThreshold: 0.55, // D_SUPPORT title share of its own raw score > 55%
+    competingFunctionalThreshold: 6, // some other track has functional ≥ 6
+    trackDPenaltyMultiplier: 0.55,
+  },
+
   // How much to penalize worth-score when the JD implies seniority the candidate hasn't held.
   seniorityKeywords: [
     "director",

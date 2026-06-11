@@ -1,150 +1,116 @@
-# Resume Workflow — V1 (local MVP)
+# AI-Assisted Opportunity Screening
 
-A calm, Apple-inspired local assistant for routing job descriptions through
-your six-track resume system (A_PMC, A_REGULATED, AB_HYBRID, AC_DEMAND,
-CB_BUYER, D_SUPPORT), generating the right prompt package, and keeping verified
-facts in a Memory Bank.
+*Applying supply chain prioritisation and workflow routing principles to high-volume job opportunities.*
 
-> V1 is intentionally a **workflow assistant**, not an autonomous agent.
-> No web scraping. No API calls. No automation. All data lives in
-> LocalStorage on your machine.
+A workflow automation and decision-support case study by a supply chain operator.
 
 ---
 
-## Pages
+## 1 · Project Overview
 
-| Route         | What it does                                                                                 |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| `/router`     | Paste a JD → classify into a track → worth-apply score, gaps, recommendation (Strong Apply / Apply / Stretch / Skip) |
-| `/workflow`   | Loads the latest routing → shows confirmed file stack + Round 1 / 2 / QA prompts ready to copy |
-| `/memory`     | Edit verified experience facts, project facts, reusable wording, metrics to verify, track notes |
-| `/library`    | Read-only view of the file-role setup grouped by track and by file role                       |
+A working end-to-end pipeline that takes hundreds of inbound opportunity alerts every week and turns them into a small, prioritised, audit-tracked shortlist — using the same exception-management pattern an operator runs every day in distribution, replenishment, or demand planning.
 
-## Project shape
+The Next.js app in this repo is the live decision engine (classification, scoring, recommendation, workflow handoff). The supporting notebook captures and dedupes the inbox; the Excel tracker holds the audit trail.
+
+The brief in one sentence:
+
+> "I used the same exception-management and prioritisation logic from supply chain operations to automate the screening, classification, routing and tracking of high-volume incoming opportunities."
+
+## 2 · Problem
+
+196 alerts per week across six channels (LinkedIn, SEEK, Glassdoor, recruiter outreach, Telegram, Gmail) was producing review overload. Manual triage was slow, inconsistent, and was consuming senior-operator time on items that did not deserve it. No audit trail. No deterministic priority. Duplicate work was common.
+
+## 3 · Solution
+
+A four-pillar workflow modelled on supply chain exception management:
+
+- **Screen** — every incoming opportunity passes through a five-second check
+- **Sort** — sort into one of six operational categories
+- **Prioritise** — explicit priority band (Strong Apply / Apply / Stretch / Skip) with the rationale visible
+- **Route & Track** — assign the right response materials and four-step playbook; log every decision
+
+AI handles the structured language work. The operator owns the calls and the audit trail.
+
+## 4 · Workflow Architecture
+
+Seven stages, end-to-end:
+
+| Stage | What it does | Where it runs |
+|---|---|---|
+| 1 · Incoming Sources | Six email channels feed the queue | Tooling (notebook) |
+| 2 · Extract & Deduplicate | Pull structured fields; collapse repeats | Tooling (notebook) |
+| 3 · Classify | Sort each opportunity into one of six categories | Live (`/router`) |
+| 4 · Score Priority | Strong Apply / Apply / Stretch / Skip with rationale | Live (`/router`) |
+| 5 · Recommend | Apply-This-Week shortlist | Live (`/router`) |
+| 6 · Route the Workflow | Response materials + four-step playbook | Live (`/workflow`) |
+| 7 · Track and Audit | Full audit trail per decision | Tooling (`job_triage_log_LIVE.xlsx`) |
+
+The six categories: Supply Planning / Inventory, Regulated Supply Chain / GMP, Operations / Coordination, Demand Planning / Forecasting, Procurement / Buyer, Analytics / Reporting.
+
+## 5 · Production Results
+
+A real morning, end-to-end in six minutes:
+
+| Time | Event | Result |
+|---|---|---|
+| 08:00 | Gmail and web sources ingested | **196** raw alerts captured |
+| 08:03 | Deduplication completed | **49** unique opportunities |
+| 08:05 | AI classification and scoring completed | **23** prioritised opportunities |
+| 08:06 | Audit tracker updated | `job_triage_log_LIVE.xlsx` refreshed |
+
+That morning's breakdown across the 23 prioritised entries:
+
+- **Category split:** 14 Supply Planning · 5 Procurement · 2 Demand · 2 Analytics
+- **Priority split:** 9 Strong Apply · 13 Apply · 1 Skip
+- **Audit trail:** every decision logged with reference, status, rationale, and outcome
+
+## 6 · Technology Stack
+
+| Layer | Stack |
+|---|---|
+| Decision engine (this app) | **Next.js 14** · TypeScript · Tailwind CSS · shadcn-style primitives |
+| Classifier + scoring | Keyword-weighted scoring with four layered overrides (operations-execution, regulated-context, analyst-title, clinical-supply) |
+| Response generation | **Claude** + **GPT** as the AI assistants in the four-step response playbook |
+| Inbound capture | Gmail search queries via a Python notebook |
+| Audit trail | Excel (`job_triage_log_LIVE.xlsx`) — system of record for every decision |
+| Persistence | LocalStorage on the device — no backend, no external calls |
+
+## 7 · Screenshots
+
+Drop screenshots into `public/screenshots/` and the references below will resolve. Suggested set:
+
+- `case-study-hero.png` — landing page hero + KPI snapshot
+- `production-run.png` — Production Run Example timeline
+- `architecture.png` — Seven-stage workflow diagram
+- `router-screening.png` — `/router` live screening engine
+- `workflow-playbook.png` — `/workflow` four-step response playbook
+- `tracker-audit.png` — `job_triage_log_LIVE.xlsx` audit trail
 
 ```
-resume-workflow-app/
-├── app/
-│   ├── layout.tsx              # Nav + shell + fonts
-│   ├── globals.css             # Tailwind base + Apple-style body background
-│   ├── page.tsx                # redirect → /router
-│   ├── router/page.tsx         # Page 1 — JD Router
-│   ├── workflow/page.tsx       # Page 2 — Workflow Assistant
-│   ├── memory/page.tsx         # Page 3 — Memory Bank
-│   └── library/page.tsx        # Page 4 — File Library
-├── components/
-│   ├── ui/                     # shadcn-style primitives (Button, Card, Badge, Textarea, Tabs, Input, Label, Separator)
-│   ├── Nav.tsx                 # Top nav with active-route highlight
-│   ├── TrackBadge.tsx          # TrackId pill with per-track colour
-│   ├── ScoreMeter.tsx          # Big number + thin progress bar
-│   ├── ConfidenceBar.tsx       # Per-track distribution bar
-│   ├── KeywordChips.tsx        # Match / gap chip list
-│   ├── StatChip.tsx            # Small stat card
-│   ├── PromptBlock.tsx         # Titled prompt viewer with Copy button
-│   └── FileStackCard.tsx       # Track → 4 file roles
-├── config/
-│   ├── tracks.ts               # Title / domain / functional / tool signals + positioning + anchors
-│   ├── scoring.ts              # Keyword weights, confidence thresholds, recommendation bands, seniority penalty
-│   ├── fileStacks.ts           # Format template / content master / evidence bank / supporting reference per track
-│   ├── memorySeed.ts           # Seed data for the Memory Bank (from the uploaded MDs)
-│   └── prompts/
-│   └── prompts/
-│       ├── index.ts            # Registry: one prompt package per TrackId
-│       ├── A_PMC.ts            # Pharma / medtech supply planning
-│       ├── A_REGULATED.ts      # Regulated supply chain / GMP-adjacent
-│       ├── AB_HYBRID.ts        # Planning + procurement hybrid
-│       ├── AC_DEMAND.ts        # Demand / replenishment / forecasting
-│       ├── CB_BUYER.ts         # Buyer / procurement / sourcing
-│       └── D_SUPPORT.ts        # Analytics / reporting / KPI
-├── lib/
-│   ├── types.ts                # Shared types (RoutingResult, WorkflowSession, MemoryBank)
-│   ├── classify.ts             # Keyword-weighted JD classifier + confidence
-│   ├── score.ts                # Worth-apply score, functional/domain fit, gap analysis
-│   ├── storage.ts              # Typed LocalStorage helpers
-│   └── utils.ts                # cn(), shortId(), nowIso(), formatScore(), truncate()
-├── tailwind.config.ts
-├── postcss.config.js
-├── next.config.js
-├── tsconfig.json
-└── package.json
+![Case study hero](public/screenshots/case-study-hero.png)
+![Production run timeline](public/screenshots/production-run.png)
+![Seven-stage workflow](public/screenshots/architecture.png)
 ```
 
-## Data flow
+## 8 · Live Demo
 
-1. **Router page** → user pastes JD → `scoreJD()` calls `classifyJD()` on every
-   track, ranks them by weighted keyword matches, then builds a full
-   `RoutingResult` (score, recommendation, fits, ATS keywords, gaps,
-   tracker tag, next-step). Saved to LocalStorage.
-2. **Workflow page** → reads the latest routing (or lets you pick from
-   history). Shows confirmed track + file stack + Round 1 / Round 2 / QA
-   prompts from `config/prompts/*`. A `WorkflowSession` is saved with status
-   and notes per routing.
-3. **Memory page** → CRUD on `MemoryBank` in LocalStorage. First-load
-   uses `config/memorySeed.ts` as defaults.
-4. **Library page** → pure read of `config/fileStacks.ts`. Two views: by
-   Track and by File Role.
+- **Live URL:** _(populated after the first Vercel deploy)_
+- **Local:** `npm install` then `npm run dev`, then open `http://localhost:3000`
 
-## Run it locally
+The app runs entirely on your device. No external API keys are required. No data leaves your machine.
 
-```bash
-cd resume-workflow-app
-npm install
-npm run dev
+---
+
+## Built by
+
+Forest Wang. Fifteen-plus years in supply chain, procurement, logistics and operations: Sanofi, YCH Group, Cainiao, Ryder, CWT. Pharma, e-commerce, third-party logistics, freight. Recently upskilled in analytics, automation and AI.
+
+## Notes for engineers
+
+Builder-facing detail (file structure, classifier internals, scoring weights, verification probes) lives in [`DEV.md`](./DEV.md). The verification probes can be run any time with:
+
 ```
-
-Open <http://localhost:3000>. The root redirects to `/router`.
-
-No environment variables. No backend. Data persists in LocalStorage for the
-origin `http://localhost:3000`.
-
-## How to tune the system without touching components
-
-All the rules live in `config/`:
-
-- **Add a keyword** to a track → edit `config/tracks.ts` (push to
-  `titleSignals` / `domainSignals` / `functionalSignals` / `toolSignals`).
-- **Change recommendation thresholds** → edit `config/scoring.ts`
-  (`recommendationWithContext` bands and confidence settings in `SCORING`).
-- **Rename a reference file** → edit `config/fileStacks.ts` once; it
-  propagates to the Router, Workflow, and Library pages.
-- **Tune the prompt for one track** → edit `config/prompts/<TrackId>.ts`.
-  The Workflow page renders whatever string is exported from that package.
-
-## Keyboard / UX niceties
-
-- Each prompt block has a **Copy** button.
-- Routing history shows the last 50 routings with a one-click “View”.
-- Override the auto-selected track from the Router page (big blue panel
-  after you run a routing).
-- D_SUPPORT-oriented memory handles portfolio projects with honest status labels
-  (Completed / Prototype / In Progress / Concept) so the resume never
-  overstates a project's maturity.
-
-## Honest limits of V1
-
-- Classifier is keyword-weighted, not ML. It's fast and explainable but
-  will miss paraphrases — the Override button is the safety net.
-- No cross-device sync. Data is in LocalStorage for the browser profile.
-- The "Real gaps vs Positioning gaps" split uses a corpus-search over
-  your Memory Bank text — you'll want to keep Memory Bank up to date for
-  this to stay useful.
-
-## Suggested next upgrade (V2)
-
-Pick one of these based on what's actually slowing you down:
-
-1. **Export / Import Memory Bank as JSON** — so you can sync between
-   machines and back it up with the rest of your resume workflow files.
-2. **Router history search + filters** — filter by track, recommendation,
-   or date; useful once you pass ~20 routings.
-3. **Per-routing workflow timer + log** — capture how long Round 1 / 2 /
-   3 actually took so you can spot slow roles.
-4. **Local JSON persistence via Next.js API routes** — swap LocalStorage
-   for file-backed storage under `./data/` so results survive browser
-   resets (still fully local, no backend service needed).
-5. **Round 1 → Round 2 → QA status workflow on Router history** — surface
-   "still at Round 1 after 2 days" as a gentle nudge.
-6. **Memory Bank search + tag filtering** — once you have 30+ facts.
-
-I'd pick **#1 (JSON export / import)** first; it's the smallest change
-and unlocks a real backup workflow.
+node scripts/probe-trackd.mjs       # six-category file-stack check
+node scripts/probe-rules-1-6.mjs    # classifier overrides
+node scripts/probe-case-study.mjs   # case-study sections + copy
+```

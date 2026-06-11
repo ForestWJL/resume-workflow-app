@@ -4,10 +4,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/router", label: "JD Router" },
+  { href: "/", label: "Case Study" },
+  { href: "/router", label: "Screening" },
   { href: "/workflow", label: "Workflow" },
-  { href: "/memory", label: "Memory" },
-  { href: "/library", label: "File Library" },
+  { href: "/memory", label: "Knowledge" },
+  { href: "/library", label: "Resources" },
 ];
 
 export function Nav() {
@@ -16,7 +17,7 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link
-          href="/router"
+          href="/"
           className="flex items-center gap-2 text-sm font-semibold tracking-tight text-ink-900"
         >
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-ink-900 text-white">
@@ -29,7 +30,10 @@ export function Nav() {
               <path d="M4 4h4v4H4zM4 12h4v4H4zM12 4h4v4h-4zM12 12h4v4h-4z" />
             </svg>
           </span>
-          Resume Workflow
+          <span className="hidden sm:inline">
+            AI-Assisted Opportunity Screening
+          </span>
+          <span className="sm:hidden">Opportunity Screening</span>
         </Link>
         <nav className="flex items-center gap-1">
           {NAV.map((item) => {

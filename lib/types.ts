@@ -31,6 +31,41 @@ export interface ScoreBreakdown {
   // True when the clinical-supply D_SUPPORT guard soft-penalised this track
   // (only ever set on D_SUPPORT). Used for explainability.
   clinicalSupplyGuardApplied?: boolean;
+  // True when the operations / coordination / execution-ownership override
+  // (Rule 2) adjusted this track's raw score — AB_HYBRID boost, or A_PMC /
+  // A_REGULATED penalty (Rule 4).
+  operationsExecutionOverrideApplied?: boolean;
+  // True when the D_SUPPORT ownership restriction (Rule 3) penalised D_SUPPORT.
+  trackDOwnershipRestrictionApplied?: boolean;
+  // True when the analyst-title guard (Rule 5) penalised D_SUPPORT.
+  analystTitleGuardApplied?: boolean;
+}
+
+/** Operations / coordination / execution-ownership override (Rules 1, 2, 4). */
+export interface OperationsExecutionOverrideDecision {
+  active: boolean;
+  hits: number;
+  matchedSignals: string[];
+  regulatedHits: number;
+  regulatedSafeguardBlockedARegulated: boolean;
+  abHybridBoosted: boolean;
+  trackAPmcPenalised: boolean;
+  trackARegulatedPenalised: boolean;
+}
+
+/** D_SUPPORT ownership restriction (Rule 3). */
+export interface TrackDOwnershipDecision {
+  active: boolean;
+  hits: number;
+  trackDPenaltyApplied: boolean;
+}
+
+/** Analyst-title guard for D_SUPPORT (Rule 5). */
+export interface AnalystTitleGuardDecision {
+  active: boolean;
+  trackDTitleShare: number;
+  bestCompetingFunctional: number;
+  trackDPenaltyApplied: boolean;
 }
 
 /** JD profile boosts applied before support-shape / D_SUPPORT guard (classifier). */
@@ -116,6 +151,12 @@ export interface RoutingResult {
   };
   /** Regulated / procurement profile boosts (optional for older saved routings). */
   trackProfileBoosts?: TrackProfileBoostDecision;
+  /** Operations / coordination / execution-ownership override (Rules 1, 2, 4). */
+  operationsExecutionOverride?: OperationsExecutionOverrideDecision;
+  /** D_SUPPORT ownership restriction (Rule 3). */
+  trackDOwnership?: TrackDOwnershipDecision;
+  /** Analyst-title guard for D_SUPPORT (Rule 5). */
+  analystTitleGuard?: AnalystTitleGuardDecision;
   /** UI row for decision chip (optional for older saved routings). */
   uiDecision?: {
     label: Recommendation;

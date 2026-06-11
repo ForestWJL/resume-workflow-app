@@ -52,6 +52,9 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     supportShape,
     clinicalSupplyGuard,
     trackProfileBoosts,
+    operationsExecutionOverride,
+    trackDOwnership,
+    analystTitleGuard,
   } = classifyJD(jdText);
   const winnerTrack = TRACKS[winner.trackId];
   const jd = normalise(jdText);
@@ -186,6 +189,9 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     supportShape,
     clinicalSupplyGuard,
     trackProfileBoosts,
+    operationsExecutionOverride,
+    trackDOwnership,
+    analystTitleGuard,
   });
 
   const suggestedNextStep = buildNextStep(
@@ -242,6 +248,10 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     // Support-shape detector output
     supportShape,
     trackProfileBoosts,
+    // Rules 1–6 classifier upgrade
+    operationsExecutionOverride,
+    trackDOwnership,
+    analystTitleGuard,
   };
 }
 
@@ -316,6 +326,9 @@ function buildReasoningSummary(args: {
   supportShape: SupportShapeDecision;
   clinicalSupplyGuard: ClinicalSupplyGuardDecision;
   trackProfileBoosts: TrackProfileBoostDecision;
+  operationsExecutionOverride: import("./types").OperationsExecutionOverrideDecision;
+  trackDOwnership: import("./types").TrackDOwnershipDecision;
+  analystTitleGuard: import("./types").AnalystTitleGuardDecision;
 }): string {
   const {
     winner,
@@ -332,6 +345,9 @@ function buildReasoningSummary(args: {
     supportShape,
     clinicalSupplyGuard,
     trackProfileBoosts,
+    operationsExecutionOverride,
+    trackDOwnership,
+    analystTitleGuard,
   } = args;
 
   // Pick the top 3 signals that most strongly influenced the decision,
@@ -456,6 +472,50 @@ function buildReasoningSummary(args: {
     } else {
       parts.push(`${base}.`);
     }
+  }
+
+  // Operations / execution-ownership override narration (Rules 2 + 4).
+  if (operationsExecutionOverride.active) {
+    const cfg = SCORING.operationsExecutionOverride;
+    const adjustments: string[] = [];
+    if (operationsExecutionOverride.abHybridBoosted) {
+      adjustments.push(`AB_HYBRID raw score ×${cfg.abHybridBoostMultiplier}`);
+    }
+    if (operationsExecutionOverride.trackAPmcPenalised) {
+      adjustments.push(`A_PMC raw score ×${cfg.trackAPmcPenaltyMultiplier}`);
+    }
+    if (operationsExecutionOverride.trackARegulatedPenalised) {
+      adjustments.push(
+        `A_REGULATED raw score ×${cfg.trackARegulatedPenaltyMultiplier}`
+      );
+    } else if (operationsExecutionOverride.regulatedSafeguardBlockedARegulated) {
+      adjustments.push(
+        `A_REGULATED penalty blocked (regulated safeguard: ${operationsExecutionOverride.regulatedHits} regulated-supply hits)`
+      );
+    }
+    parts.push(
+      `Operations / coordination / execution-ownership override fired (${operationsExecutionOverride.hits} execution signals) — ${adjustments.join(
+        "; "
+      )}.`
+    );
+  }
+
+  // D_SUPPORT ownership restriction narration (Rule 3).
+  if (trackDOwnership.active && trackDOwnership.trackDPenaltyApplied) {
+    const m = SCORING.trackDOwnershipRestriction.trackDPenaltyMultiplier;
+    parts.push(
+      `D_SUPPORT ownership restriction fired (${trackDOwnership.hits} execution-ownership signals) — D_SUPPORT raw score ×${m}. Pure analytics roles only.`
+    );
+  }
+
+  // Analyst-title guard narration (Rule 5).
+  if (analystTitleGuard.active && analystTitleGuard.trackDPenaltyApplied) {
+    const m = SCORING.analystTitleGuard.trackDPenaltyMultiplier;
+    parts.push(
+      `Analyst-title guard fired (D_SUPPORT title share ${Math.round(
+        analystTitleGuard.trackDTitleShare * 100
+      )}% with competing functional ${analystTitleGuard.bestCompetingFunctional}) — D_SUPPORT raw score ×${m}.`
+    );
   }
 
   // Clinical-supply D_SUPPORT guard narration — only when D_SUPPORT raw score was scaled.

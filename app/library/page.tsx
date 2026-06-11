@@ -17,10 +17,10 @@ import { PROMPTS } from "@/config/prompts";
 
 
 const ROLES = [
-  { key: "formatTemplate", label: "Format Template" },
-  { key: "contentMaster", label: "Content Master" },
-  { key: "evidenceBank", label: "Evidence Bank" },
-  { key: "supportingReference", label: "Supporting Reference" },
+  { key: "formatTemplate", label: "Approved response template" },
+  { key: "contentMaster", label: "Content master" },
+  { key: "evidenceBank", label: "Evidence bank" },
+  { key: "supportingReference", label: "Supporting reference" },
 ] as const;
 
 export default function LibraryPage() {
@@ -30,17 +30,15 @@ export default function LibraryPage() {
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
         <Badge variant="muted" className="self-start">
-          Page 4 · File Library
+          Resource Library
         </Badge>
         <h1 className="text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
-          File Library
+          Resource Library
         </h1>
         <p className="max-w-2xl text-sm text-ink-500">
-          Canonical file-role setup for every track. Pulls from{" "}
-          <code className="rounded bg-ink-100 px-1 py-0.5 font-mono text-[11px]">
-            config/fileStacks.ts
-          </code>
-          . Rename a file there to update it everywhere.
+          Response materials, organised by category. Every category has an
+          approved response template, a detailed content master, an evidence
+          bank, and a supporting reference.
         </p>
       </section>
 

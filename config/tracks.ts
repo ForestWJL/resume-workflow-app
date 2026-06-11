@@ -6,6 +6,12 @@ export type TrackId =
   | "CB_BUYER"
   | "D_SUPPORT";
 
+export interface TrackVariant {
+  id: string;
+  name: string;
+  strongSignals: string[];
+}
+
 export interface TrackConfig {
   id: TrackId;
   name: string;
@@ -14,184 +20,166 @@ export interface TrackConfig {
   functionalSignals: string[];
   toolSignals: string[];
   ambiguousTitleSignals?: string[];
-  /** Optional informational sub-variants (used by `resolveVariant` in scoring). */
-  variants?: Array<{ id: string; name: string; strongSignals: string[] }>;
+  // Optional informational sub-variants used by `resolveVariant` in lib/score.ts.
+  // No category in the current 6-track schema defines variants, but the field
+  // stays present so downstream code compiles without per-track checks.
+  variants?: TrackVariant[];
 }
 
 export const TRACKS: Record<TrackId, TrackConfig> = {
-A_PMC: {
-  id: "A_PMC",
 
-  name: "Pharma / Medtech / Supply Planning",
+  A_PMC: {
+    id: "A_PMC",
 
-  titleSignals: [
-    "supply planner",
-    "material planner",
-    "inventory planner",
-    "production planner",
-    "supply chain planner",
-    "planning executive",
-    "supply chain executive",
-    "warehouse planner",
-    "logistics planner"
-  ],
+    name: "Supply Planning / Inventory / MRP",
 
-  domainSignals: [
-    "inventory",
-    "inventory control",
-    "stock",
-    "warehouse",
-    "shipment",
-    "material",
-    "production",
-    "fulfillment",
-    "distribution",
-    "packing",
-    "picking",
-  ],
+    titleSignals: [
+      "supply planner",
+      "material planner",
+      "inventory planner",
+      "production planner",
+      "supply chain planner",
+      "planning executive",
+      "planner"
+    ],
 
-  functionalSignals: [
-    "inventory planning",
-    "stock control",
-    "warehouse operations",
-    "warehouse process",
-    "workflow improvement",
-    "process improvement",
-    "process monitoring",
-    "inventory monitoring",
-    "material planning",
-    "production planning",
-    "supply planning",
-    "allocation",
-    "replenishment",
-    "shipment coordination",
-    "receiving",
-    "picking",
-    "packing",
-    "cycle count",
-    "stock accuracy"
-  ],
+    domainSignals: [
+      "inventory",
+      "stock",
+      "warehouse",
+      "material",
+      "production",
+      "distribution",
+      "fulfillment"
+    ],
 
-  toolSignals: [
-    "sap",
-    "erp",
-    "wms"
-  ],
+    functionalSignals: [
+      "inventory planning",
+      "stock control",
+      "material planning",
+      "production planning",
+      "mrp",
+      "replenishment",
+      "allocation",
+      "inventory monitoring",
+      "stock accuracy",
+      "cycle count"
+    ],
 
-  ambiguousTitleSignals: [
-    "supply chain executive",
-    "operations executive"
-  ]
-},
+    toolSignals: [
+      "sap",
+      "erp",
+      "mrp"
+    ],
+
+    ambiguousTitleSignals: [
+      "supply chain executive",
+      "operations executive"
+    ]
+  },
 
   A_REGULATED: {
     id: "A_REGULATED",
-    name: "Regulated Supply Chain",
+
+    name: "Regulated Supply Chain / GMP",
+
     titleSignals: [
       "pharma",
       "medtech",
-      "quality supply chain",
-      "supply chain quality",
       "clinical supply",
-      "clinical supplies",
-      "batch release",
+      "quality supply chain",
       "gmp",
-      "regulatory affairs",
-      "qp",
-      "qualified person",
+      "regulatory"
     ],
+
     domainSignals: [
       "gmp",
       "cgmp",
       "gxp",
-      "regulatory",
-      "validation",
       "pharmaceutical",
       "biopharma",
       "clinical trial",
-      "clinical supply",
       "cold chain",
       "gdp",
       "sterile",
-      "aseptic",
-      "serialization",
-      "temperature excursion",
-      "temperature excursions",
-      "quarantine",
-      "recall",
-      "pharmacovigilance",
+      "aseptic"
     ],
+
     functionalSignals: [
       "compliance",
       "batch release",
-      "batch disposition",
-      "batch record",
       "batch documentation",
       "fefo",
-      "first expired first out",
       "expiry",
-      "expiry dates",
-      "monitor expiry",
-      "cold chain",
-      "clinical supply",
-      "clinical trial supplies",
-      "clinical trial supply",
-      "drug product",
       "temperature monitoring",
-      "chain of custody",
-      "documentation and approvals",
       "deviation",
       "capa",
-      "investigational medicinal product",
-      "imp",
-      "qp release",
-      "release for supply",
-      "qualified person",
-      "good distribution practice",
-      "sterility",
-      "clean room",
-      "cleanroom",
+      "audit",
+      "validation"
     ],
+
     toolSignals: [],
-    ambiguousTitleSignals: [],
+
+    ambiguousTitleSignals: []
   },
 
   AB_HYBRID: {
     id: "AB_HYBRID",
-    name: "Planning + Procurement",
- 
+
+    name: "Operations / Coordination / Execution",
+
     titleSignals: [
-      "planner",
-      "supply chain planner",
-      "demand planner"
+      "operations executive",
+      "operations coordinator",
+      "supply chain executive",
+      "logistics executive",
+      "customer operations",
+      "fulfilment executive"
     ],
-   
+
     domainSignals: [
-      "inventory",
-      "forecast",
-      "planning"
+      "operations",
+      "logistics",
+      "fulfilment",
+      "distribution",
+      "supply chain"
     ],
-  
+
     functionalSignals: [
-      "planning",
-      "forecast",
-      "inventory planning",
-      "demand planning"
+      "coordination",
+      "stakeholder management",
+      "order fulfilment",
+      "issue resolution",
+      "vendor coordination",
+      "supplier coordination",
+      "shipment coordination",
+      "execution",
+      "follow-up",
+      "escalation",
+      "process execution"
     ],
-  
-    toolSignals: ["erp"],
-    ambiguousTitleSignals: []
+
+    toolSignals: [
+      "erp"
+    ],
+
+    ambiguousTitleSignals: [
+      "operations executive",
+      "supply chain executive"
+    ]
   },
 
   AC_DEMAND: {
     id: "AC_DEMAND",
-    name: "Demand / Replenishment",
-  
+
+    name: "Demand Planning / Forecasting",
+
     titleSignals: [
       "demand planner",
+      "forecast analyst",
       "demand planning"
     ],
-  
+
     domainSignals: [
       "forecast",
       "demand",
@@ -200,127 +188,109 @@ A_PMC: {
       "shortage",
       "excess"
     ],
-  
+
     functionalSignals: [
       "forecast",
       "demand planning",
-      "inventory monitoring",
       "replenishment",
+      "inventory balancing",
       "stock planning",
-      "prevent shortage"
+      "prevent shortage",
+      "forecast accuracy"
     ],
-  
-    toolSignals: ["excel", "erp"],
+
+    toolSignals: [
+      "excel",
+      "erp",
+      "power bi"
+    ],
+
     ambiguousTitleSignals: []
   },
 
   CB_BUYER: {
     id: "CB_BUYER",
-    name: "Buyer / Procurement",
+
+    name: "Procurement / Buyer",
+
     titleSignals: [
       "buyer",
       "procurement",
       "purchasing",
-      "sourcing",
-      "category manager",
-      "vendor manager",
+      "sourcing"
     ],
+
     domainSignals: [
       "supplier",
-      "rfq",
       "vendor",
       "procurement",
-      "sourcing",
-      "tender",
-      "subcontractor",
+      "purchasing"
     ],
+
     functionalSignals: [
       "rfq",
       "rfi",
-      "request for quotation",
-      "request for quote",
-      "invitation to tender",
-      "quotation",
-      "quotations",
-      "vendor coordination",
-      "vendor sourcing",
-      "vendor selection",
-      "vendor evaluation",
-      "supplier evaluation",
-      "supplier coordination",
-      "supplier onboarding",
-      "procurement",
-      "strategic sourcing",
-      "sourcing",
-      "category sourcing",
-      "cost comparison",
-      "comparison sheet",
-      "cost calculation",
-      "costing sheet",
-      "rate management",
-      "vendor quotation",
-      "quotation support",
-      "logistics pricing",
-      "transport costing",
-      "warehouse costing",
-      "commercial support",
-      "procurement records",
-      "vendor database",
-      "pricing template",
-      "pricing",
-      "costing",
-      "tender",
-      "bidding",
-      "rate card",
-      "subcontractor",
-      "supplier follow-up",
-      "pricing analysis",
-      "margin tracking",
-      "purchase requisition",
       "purchase order",
-      "po placement",
-      "negotiation",
-      "supplier quote",
-      "vendor quote",
+      "po",
+      "supplier follow-up",
+      "vendor coordination",
+      "delivery tracking",
+      "lead time",
+      "cost tracking"
     ],
-  toolSignals: [
-      "excel",
-      "cost calculation",
-      "pricing template",
-      "rate card",
+
+    toolSignals: [
+      "sap",
       "erp"
     ],
+
     ambiguousTitleSignals: []
   },
 
   D_SUPPORT: {
     id: "D_SUPPORT",
-    name: "Analytics / Reporting",
-    titleSignals: ["analyst", "data"],
-    domainSignals: ["kpi", "reporting"],
+
+    name: "Analytics / Reporting Support",
+
+    titleSignals: [
+      "analyst",
+      "data analyst",
+      "reporting analyst"
+    ],
+
+    domainSignals: [
+      "data",
+      "reporting",
+      "dashboard",
+      "analysis"
+    ],
+
     functionalSignals: [
       "reporting",
-      "data management",
-      "cost tracking",
-      "vendor tracking",
-      "record maintenance",
-      "kpi",
       "dashboard",
-      "power bi",
-      "sql",
-      "python",
-      "analytics",
+      "data analysis",
+      "kpi tracking",
       "visualization",
-     ],
-    toolSignals: ["sql", "python", "power bi"],
+      "data validation"
+    ],
+
+    toolSignals: [
+      "excel",
+      "power bi",
+      "tableau"
+    ],
+
     ambiguousTitleSignals: []
   }
 };
-export const TRACK_ORDER = [
+
+// TRACK_ORDER is the canonical ordering used by the router/library/workflow
+// pages when iterating over the categories.
+export const TRACK_ORDER: TrackId[] = [
   "A_PMC",
   "A_REGULATED",
   "AB_HYBRID",
   "AC_DEMAND",
   "CB_BUYER",
-  "D_SUPPORT"
-];  
+  "D_SUPPORT",
+];

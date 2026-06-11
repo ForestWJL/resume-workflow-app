@@ -43,7 +43,6 @@ function getModePrompt(
 
   switch (promptMode) {
 
-
     case "FULL":
       return `
 Perform a FULL resume tailoring rewrite.

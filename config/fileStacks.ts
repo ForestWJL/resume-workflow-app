@@ -18,25 +18,30 @@ trackNote?: string;
 }
 
 export const FILE_STACKS: Record<TrackId, FileStack> = {
-// ===== A_PMC — pharma / medtech supply planning =====
+// ===== A_PMC — Supply Planning / Inventory / MRP =====
 A_PMC: {
 formatTemplate: {
-label: "Format Template",
-fileName: "Forest_Wang_DistributionPlanner_CytivaV2.docx",
-note: "Layout, section order, density only.",
+label: "Approved Track A Base Resume",
+fileName: "ForestWang_PharmaSC.docx",
+note: "Primary structural and wording anchor for Track A tailoring (Sanofi raw-material planning · 45-month zero write-offs · MRP · FEFO · SAP MM master data).",
 },
 contentMaster: {
 label: "Content Master",
 fileName: "Supply Chain Operations Specialist.docx",
+note: "Deeper skills catalogue. Use only where the base resume is thin.",
 },
 evidenceBank: {
 label: "Experience Evidence Bank",
 fileName: "Sanofi_Interview_Final_Condensed.docx",
+note: "Interview-style scope + metrics. Extract and rephrase — do not copy directly.",
 },
 supportingReference: {
 label: "Supporting Reference",
 fileName: "Forest_Wang_RegionalSCAnalyst_Terumo_v2.docx",
+note: "Medtech-flavoured planner format reference for medtech JDs.",
 },
+trackNote:
+"Use the approved Track A base first; pull from the content master only when the base is thin. DO NOT pull phrasing from ForestWang_TrackD_DataAnalyst_MASTER.docx — that's Track D Data Analyst positioning and will cause identity drift.",
 },
 
 // ===== A_REGULATED — regulated supply chain / GMP-adjacent roles =====

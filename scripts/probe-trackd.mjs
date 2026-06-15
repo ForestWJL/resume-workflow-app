@@ -21,7 +21,7 @@ console.log("\n=== TRACK FILE STACK PROBE ===\n");
 
 const EXPECTED = {
   A_PMC: {
-    fmt: "Forest_Wang_DistributionPlanner_CytivaV2.docx",
+    fmt: "ForestWang_PharmaSC.docx",
     content: "Supply Chain Operations Specialist.docx",
     evidence: "Sanofi_Interview_Final_Condensed.docx",
   },

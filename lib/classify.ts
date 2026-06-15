@@ -7,6 +7,7 @@ import type {
   ScoreBreakdown,
   TrackDOwnershipDecision,
   TrackProfileBoostDecision,
+  TransformationOverrideDecision,
 } from "./types";
 
 // lib/classify.ts
@@ -388,6 +389,101 @@ function applyAnalystTitleGuard(
   };
 }
 
+/* ───── Transformation Override (Track E) ───── */
+
+function countTransformationSignals(jd: string): {
+  hits: number;
+  matched: string[];
+} {
+  const matched: string[] = [];
+  for (const kw of SCORING.transformationOverride.transformationSignals) {
+    if (countOccurrences(jd, kw) > 0) matched.push(kw);
+  }
+  return { hits: matched.length, matched };
+}
+
+function countPureAnalyticsSignals(jd: string): {
+  hits: number;
+  matched: string[];
+} {
+  const matched: string[] = [];
+  for (const kw of SCORING.transformationOverride.pureAnalyticsSignals) {
+    if (countOccurrences(jd, kw) > 0) matched.push(kw);
+  }
+  return { hits: matched.length, matched };
+}
+
+function applyTransformationOverride(
+  jd: string,
+  breakdown: ScoreBreakdown[]
+): TransformationOverrideDecision {
+  const cfg = SCORING.transformationOverride;
+
+  const trans = countTransformationSignals(jd);
+  const pa = countPureAnalyticsSignals(jd);
+  const regulatedHits = countRegulatedPlanningHits(jd);
+
+  // Override fires when transformation signals are present at threshold AND
+  // pure-analytics dominance is below the safeguard threshold.
+  const transformationActive = trans.hits >= cfg.thresholdHits;
+  const pureAnalyticsSafeguardBlockedOverride =
+    pa.hits >= cfg.pureAnalyticsSafeguardThreshold;
+  const active = transformationActive && !pureAnalyticsSafeguardBlockedOverride;
+
+  // Regulated-clinical safeguard for A_REGULATED — reused from the Almac fix
+  // so genuinely regulated supply roles never get pulled by Track E.
+  const regulatedSafeguardBlockedARegulated =
+    regulatedHits >= cfg.regulatedSafeguardThreshold;
+
+  const e = breakdown.find((b) => b.trackId === "E_TRANSFORMATION");
+  const d = breakdown.find((b) => b.trackId === "D_SUPPORT");
+  const apmc = breakdown.find((b) => b.trackId === "A_PMC");
+  const areg = breakdown.find((b) => b.trackId === "A_REGULATED");
+
+  let trackEBoosted = false;
+  let trackDPenalised = false;
+  let trackAPmcPenalised = false;
+  let trackARegulatedPenalised = false;
+
+  if (active) {
+    if (e) {
+      e.rawScore *= cfg.trackEBoostMultiplier;
+      e.transformationOverrideApplied = true;
+      trackEBoosted = true;
+    }
+    if (d && d.rawScore > 0) {
+      d.rawScore *= cfg.trackDPenaltyMultiplier;
+      d.transformationOverrideApplied = true;
+      trackDPenalised = true;
+    }
+    if (apmc && apmc.rawScore > 0) {
+      apmc.rawScore *= cfg.trackAPmcPenaltyMultiplier;
+      apmc.transformationOverrideApplied = true;
+      trackAPmcPenalised = true;
+    }
+    if (areg && areg.rawScore > 0 && !regulatedSafeguardBlockedARegulated) {
+      areg.rawScore *= cfg.trackARegulatedPenaltyMultiplier;
+      areg.transformationOverrideApplied = true;
+      trackARegulatedPenalised = true;
+    }
+  }
+
+  return {
+    active,
+    transformationHits: trans.hits,
+    pureAnalyticsHits: pa.hits,
+    matchedTransformationSignals: trans.matched,
+    matchedPureAnalyticsSignals: pa.matched,
+    pureAnalyticsSafeguardBlockedOverride,
+    regulatedSafeguardBlockedARegulated,
+    regulatedHits,
+    trackEBoosted,
+    trackDPenalised,
+    trackAPmcPenalised,
+    trackARegulatedPenalised,
+  };
+}
+
 /* ───── Clinical-supply D_SUPPORT guard ───── */
 
 export interface ClinicalSupplyGuardDecision {
@@ -419,6 +515,7 @@ export function classifyJD(jdText: string): {
   operationsExecutionOverride: OperationsExecutionOverrideDecision;
   trackDOwnership: TrackDOwnershipDecision;
   analystTitleGuard: AnalystTitleGuardDecision;
+  transformationOverride: TransformationOverrideDecision;
 } {
   const jd = normalise(jdText);
   const breakdown: ScoreBreakdown[] = (
@@ -455,6 +552,13 @@ export function classifyJD(jdText: string): {
   // "Analyst" in the title pulls D_SUPPORT title points. If D_SUPPORT's win is
   // largely title-driven and another track is function-strong, penalise D.
   const analystTitleGuard = applyAnalystTitleGuard(breakdown);
+
+  // ─── Transformation Override (Track E) ────────────────────────────────────
+  // Distinguish business-transformation roles (Track E) from pure analytics
+  // (D_SUPPORT). When transformation signals are dense AND pure-analytics
+  // signals are sparse: boost Track E, penalise D_SUPPORT, lightly soften
+  // A_PMC / A_REGULATED (unless the regulated safeguard is active).
+  const transformationOverride = applyTransformationOverride(jd, breakdown);
 
   // ─── Clinical-supply D_SUPPORT guard ──────────────────────────────────────
   // When the JD is clearly regulated clinical supply coordination, soft-
@@ -500,6 +604,7 @@ export function classifyJD(jdText: string): {
     operationsExecutionOverride,
     trackDOwnership,
     analystTitleGuard,
+    transformationOverride,
   };
 }
 

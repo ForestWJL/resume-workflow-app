@@ -25,7 +25,7 @@ import {
   setLastActiveRoutingId,
 } from "@/lib/storage";
 import { PipelineStageBadge } from "@/components/case-study/PipelineStageBadge";
-import { PROMPTS, CHATGPT_REFINE_PROMPT } from "@/config/prompts";
+import { CHATGPT_REFINE_PROMPT, getPromptPackage } from "@/config/prompts";
 import { FILE_STACKS } from "@/config/fileStacks";
 import { TRACKS, TRACK_ORDER, type TrackId } from "@/config/tracks";
 import type { RoutingResult, WorkflowSession } from "@/lib/types";
@@ -124,7 +124,14 @@ export default function WorkflowPage() {
   };
 
   const activeTrack: TrackId | null = confirmedTrack;
-  const prompt = activeTrack ? PROMPTS[activeTrack] : null;
+  // Variant-aware prompt resolution. For Track E this injects one of four
+  // variant fragments (Business Analyst · Supply Chain Transformation ·
+  // Operations Excellence · AI Enablement) into the {{VARIANT_POSITIONING}}
+  // placeholder of every round body. For all other tracks this returns the
+  // static PROMPTS[track] package unchanged.
+  const prompt = activeTrack
+    ? getPromptPackage(activeTrack, routing?.variantId)
+    : null;
   const fileStack = activeTrack ? FILE_STACKS[activeTrack] : null;
   const trackCfg = activeTrack ? TRACKS[activeTrack] : null;
 

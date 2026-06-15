@@ -143,5 +143,8 @@ export const MEMORY_SEED: MemoryBank = {
     
   D_SUPPORT:
     "Lead with dashboards, reporting, Power BI, SQL, workflow visibility.",
+
+  E_TRANSFORMATION:
+    "Lead with SC operations ownership + AI / automation as business enabler. Stakeholder management, process redesign, transformation roadmap. Bridge between operations and digital solutions.",
   },
 };

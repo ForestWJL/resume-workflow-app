@@ -336,6 +336,124 @@ export const SCORING = {
     trackDPenaltyMultiplier: 0.55,
   },
 
+  // ─── Transformation Override (Track E) ──────────────────────────────────
+  // Track E — Supply Chain Business Analyst (AI & Digital Transformation) —
+  // sits BETWEEN A_PMC / AB_HYBRID and D_SUPPORT. The hard call this override
+  // adjudicates is:
+  //
+  //   - Primarily reporting / dashboards / SQL / Power BI / KPI                 → D_SUPPORT wins
+  //   - Business ownership / AI adoption / workflow redesign / transformation   → Track E wins
+  //
+  // Active rule:
+  //   When transformation-signal hits ≥ thresholdHits AND pure-analytics hits
+  //   are below pureAnalyticsSafeguardThreshold, boost Track E, soft-penalise
+  //   D_SUPPORT, and lightly soften A_PMC / A_REGULATED (they may still win
+  //   when their own signals dominate).
+  //
+  // Safeguard rule:
+  //   When pure-analytics hits ≥ pureAnalyticsSafeguardThreshold, the override
+  //   does NOT fire — D_SUPPORT keeps its raw score and wins on pure-analytics
+  //   JDs, even if some transformation language appears in passing.
+  //
+  // Combined with the existing Rule 1–6 overrides this means:
+  //   regulated supply (Almac-shape) → A_REGULATED still wins (regulated safeguard)
+  //   pure planning ownership        → A_PMC still wins (full-weight title safeguard)
+  //   execution coordination         → AB_HYBRID still wins (ops-execution override)
+  //   pure analytics                 → D_SUPPORT still wins (pure-analytics safeguard)
+  //   SC + AI + transformation       → Track E wins (this block)
+  transformationOverride: {
+    transformationSignals: [
+      // Domain
+      "digital transformation",
+      "supply chain transformation",
+      "operations excellence",
+      "operational excellence",
+      "continuous improvement",
+      "process improvement",
+      "process optimisation",
+      "process optimization",
+      "business process re-engineering",
+      "business process reengineering",
+      "change management",
+      "operational visibility",
+      "decision support",
+      "cross-functional transformation",
+      "cross functional transformation",
+      "business ownership",
+      "stakeholder management",
+      "ai adoption",
+      "ai enablement",
+      "digital adoption",
+      "workflow automation",
+      "workflow redesign",
+      "workflow design",
+      "process redesign",
+      // Functional verbs
+      "root cause analysis",
+      "stakeholder workshops",
+      "stakeholder engagement",
+      "use case definition",
+      "process mapping",
+      "value stream mapping",
+      "transformation roadmap",
+      "transformation initiative",
+      "kaizen",
+      "lean six sigma",
+      "ai-assisted",
+      "ai assisted",
+      "ai-driven",
+      "ai driven",
+      "ai-enabled",
+      "ai enabled",
+      "operating model",
+      "process governance",
+      "translate business requirements",
+      "translate operations",
+      // Titles
+      "supply chain business analyst",
+      "digital supply chain analyst",
+      "supply chain transformation analyst",
+      "ai enablement specialist",
+      "operations excellence analyst",
+      "process improvement analyst",
+      "transformation analyst",
+      "business transformation analyst",
+    ],
+    // Pure-analytics signals — when these dominate, D_SUPPORT keeps the win
+    // even if some transformation language is present. Reuses D_SUPPORT's
+    // tool stack plus the bare "data analyst" / "reporting analyst" titles.
+    pureAnalyticsSignals: [
+      "kpi reporting",
+      "kpi dashboard",
+      "kpi dashboards",
+      "kpi tracking",
+      "dashboard development",
+      "dashboards",
+      "power bi",
+      "tableau",
+      "sql",
+      "t-sql",
+      "data analyst",
+      "reporting analyst",
+      "bi analyst",
+      "business intelligence analyst",
+      "data validation",
+      "data visualisation",
+      "data visualization",
+      "automated reports",
+      "report writing",
+    ],
+    thresholdHits: 3, // ≥3 distinct transformation phrases → override is active
+    pureAnalyticsSafeguardThreshold: 4, // ≥4 distinct pure-analytics phrases → D_SUPPORT keeps the win
+    trackEBoostMultiplier: 1.4,
+    trackDPenaltyMultiplier: 0.7,
+    trackAPmcPenaltyMultiplier: 0.9, // mild — A_PMC may still win on planning-led roles
+    trackARegulatedPenaltyMultiplier: 0.9, // mild
+    // Inherits the existing regulated-safeguard threshold so A_REGULATED is
+    // never penalised when the JD is genuinely regulated clinical supply.
+    regulatedSafeguardThreshold: 3,
+  },
+
   // How much to penalize worth-score when the JD implies seniority the candidate hasn't held.
   seniorityKeywords: [
     "director",

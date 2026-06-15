@@ -140,4 +140,31 @@ fileName: "Supply Chain Operations Specialist.docx",
 optional: true,
 },
 },
+
+// ===== E_TRANSFORMATION — Supply Chain Business Analyst (AI & Digital Transformation) =====
+E_TRANSFORMATION: {
+formatTemplate: {
+label: "Approved Track E Base Resume",
+fileName: "Forest_Wang_TrackE_SupplyChainBusinessAI.docx",
+note: "Primary structural and wording anchor for Track E tailoring.",
+},
+contentMaster: {
+label: "Content Master",
+fileName: "Forest_Wang_TrainingDataAnalytic.docx",
+note: "Deeper analytics + AI content for alternate wording.",
+},
+evidenceBank: {
+label: "AI Project Portfolio / Evidence Guardrails",
+fileName: "Project_Bank_Analytics_AI.md",
+note: "Track E project evidence — honest project labels, resume-safe wording.",
+},
+supportingReference: {
+label: "Supporting Analytics Evidence",
+fileName: "Forest_Wang_TrackD_OperationsAnalytics.docx",
+note: "Optional — use when the JD has analytics-adjacent tooling that needs reinforcement.",
+optional: true,
+},
+trackNote:
+"Lead with operational ownership + AI-enabled transformation. Pull the AI project portfolio in only when the JD asks for it explicitly.",
+},
 };

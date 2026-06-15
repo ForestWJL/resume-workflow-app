@@ -8,6 +8,7 @@ const COLORS: Record<TrackId, string> = {
   AC_DEMAND: "bg-emerald-50 text-emerald-700 border-emerald-100",
   CB_BUYER: "bg-amber-50 text-amber-700 border-amber-100",
   D_SUPPORT: "bg-violet-50 text-violet-700 border-violet-100",
+  E_TRANSFORMATION: "bg-indigo-50 text-indigo-700 border-indigo-100",
 };
 
 export function TrackBadge({

@@ -9,6 +9,7 @@ const COLOR: Record<TrackId, string> = {
   AC_DEMAND: "bg-emerald-500",
   CB_BUYER: "bg-amber-500",
   D_SUPPORT: "bg-violet-500",
+  E_TRANSFORMATION: "bg-indigo-500",
 };
 
 export function ConfidenceBar({

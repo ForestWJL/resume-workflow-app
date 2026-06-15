@@ -280,6 +280,7 @@ export default function RouterPage() {
                         "AC_DEMAND",
                         "CB_BUYER",
                         "D_SUPPORT",
+                        "E_TRANSFORMATION",
                       ] as const
                     ).map((t) => (
                       <Button

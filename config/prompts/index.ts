@@ -8,6 +8,10 @@ import { AB_HYBRID_PROMPT } from "./AB_HYBRID";
 import { AC_DEMAND_PROMPT } from "./AC_DEMAND";
 import { CB_BUYER_PROMPT } from "./CB_BUYER";
 import { D_SUPPORT_PROMPT } from "./D_SUPPORT";
+import {
+  E_TRANSFORMATION_PROMPT_PACKAGE,
+  resolveETransformationPrompt,
+} from "./E_TRANSFORMATION";
 
 export interface TrackPromptPackage {
   sourceFile: string;
@@ -46,7 +50,33 @@ export const PROMPTS: Record<TrackId, TrackPromptPackage> = {
   CB_BUYER: coercePrompt(CB_BUYER_PROMPT, "CB_BUYER", "CB_BUYER"),
 
   D_SUPPORT: coercePrompt(D_SUPPORT_PROMPT, "D_SUPPORT", "D_SUPPORT"),
+
+  // Track E exports a fully-formed TrackPromptPackage (distinct R1/R2/R3) —
+  // bypass coercePrompt because Track E must not collapse to a single body.
+  E_TRANSFORMATION: E_TRANSFORMATION_PROMPT_PACKAGE,
 };
+
+/**
+ * Variant-aware prompt resolver.
+ *
+ * For all tracks except E_TRANSFORMATION this returns the static
+ * `PROMPTS[track]` package — the existing behaviour is unchanged.
+ *
+ * For E_TRANSFORMATION the four variant ids
+ * (E-business-analyst · E-transformation · E-operations-excellence ·
+ * E-ai-enablement) inject distinct positioning fragments into the
+ * {{VARIANT_POSITIONING}} placeholder of every round body. An unknown or
+ * undefined variant id falls back to the balanced "mixed" fragment.
+ */
+export function getPromptPackage(
+  track: TrackId,
+  variantId?: string | null
+): TrackPromptPackage {
+  if (track === "E_TRANSFORMATION") {
+    return resolveETransformationPrompt(variantId ?? undefined);
+  }
+  return PROMPTS[track];
+}
 
 // Optional shared polish pass
 export const CHATGPT_REFINE_PROMPT = `

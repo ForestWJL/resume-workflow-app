@@ -55,6 +55,12 @@ const EXPECTED = {
     content: "Forest_Wang_TrainingDataAnalytic.docx",
     evidence: "Project_Bank_Analytics_AI.md",
   },
+
+  E_TRANSFORMATION: {
+    fmt: "Forest_Wang_TrackE_SupplyChainBusinessAI.docx",
+    content: "Forest_Wang_TrainingDataAnalytic.docx",
+    evidence: "Project_Bank_Analytics_AI.md",
+  },
 };
 
 const results = [];

@@ -9,6 +9,7 @@ import { AB_HYBRID_PROMPT } from "@/config/prompts/AB_HYBRID";
 import { AC_DEMAND_PROMPT } from "@/config/prompts/AC_DEMAND";
 import { CB_BUYER_PROMPT } from "@/config/prompts/CB_BUYER";
 import { D_SUPPORT_PROMPT } from "@/config/prompts/D_SUPPORT";
+import { E_TRANSFORMATION_PROMPT } from "@/config/prompts/E_TRANSFORMATION";
 
 function getTrackPrompt(track: TrackId): string {
 
@@ -31,6 +32,9 @@ function getTrackPrompt(track: TrackId): string {
 
     case "D_SUPPORT":
       return D_SUPPORT_PROMPT;
+
+    case "E_TRANSFORMATION":
+      return E_TRANSFORMATION_PROMPT;
 
     default:
       return "";

@@ -55,6 +55,7 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     operationsExecutionOverride,
     trackDOwnership,
     analystTitleGuard,
+    transformationOverride,
   } = classifyJD(jdText);
   const winnerTrack = TRACKS[winner.trackId];
   const jd = normalise(jdText);
@@ -192,6 +193,7 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     operationsExecutionOverride,
     trackDOwnership,
     analystTitleGuard,
+    transformationOverride,
   });
 
   const suggestedNextStep = buildNextStep(
@@ -252,6 +254,8 @@ export function scoreJD({ jdText, memoryBank }: ScoreInput): RoutingResult {
     operationsExecutionOverride,
     trackDOwnership,
     analystTitleGuard,
+    // Transformation Override (Track E)
+    transformationOverride,
   };
 }
 
@@ -329,6 +333,7 @@ function buildReasoningSummary(args: {
   operationsExecutionOverride: import("./types").OperationsExecutionOverrideDecision;
   trackDOwnership: import("./types").TrackDOwnershipDecision;
   analystTitleGuard: import("./types").AnalystTitleGuardDecision;
+  transformationOverride: import("./types").TransformationOverrideDecision;
 }): string {
   const {
     winner,
@@ -348,6 +353,7 @@ function buildReasoningSummary(args: {
     operationsExecutionOverride,
     trackDOwnership,
     analystTitleGuard,
+    transformationOverride,
   } = args;
 
   // Pick the top 3 signals that most strongly influenced the decision,
@@ -515,6 +521,39 @@ function buildReasoningSummary(args: {
       `Analyst-title guard fired (D_SUPPORT title share ${Math.round(
         analystTitleGuard.trackDTitleShare * 100
       )}% with competing functional ${analystTitleGuard.bestCompetingFunctional}) — D_SUPPORT raw score ×${m}.`
+    );
+  }
+
+  // Transformation Override (Track E) narration.
+  if (transformationOverride.active) {
+    const cfg = SCORING.transformationOverride;
+    const adjustments: string[] = [];
+    if (transformationOverride.trackEBoosted) {
+      adjustments.push(`E_TRANSFORMATION raw score ×${cfg.trackEBoostMultiplier}`);
+    }
+    if (transformationOverride.trackDPenalised) {
+      adjustments.push(`D_SUPPORT raw score ×${cfg.trackDPenaltyMultiplier}`);
+    }
+    if (transformationOverride.trackAPmcPenalised) {
+      adjustments.push(`A_PMC raw score ×${cfg.trackAPmcPenaltyMultiplier}`);
+    }
+    if (transformationOverride.trackARegulatedPenalised) {
+      adjustments.push(
+        `A_REGULATED raw score ×${cfg.trackARegulatedPenaltyMultiplier}`
+      );
+    } else if (transformationOverride.regulatedSafeguardBlockedARegulated) {
+      adjustments.push(
+        `A_REGULATED penalty blocked (regulated safeguard: ${transformationOverride.regulatedHits} regulated-supply hits)`
+      );
+    }
+    parts.push(
+      `Transformation Override fired (${transformationOverride.transformationHits} transformation signals · ${transformationOverride.pureAnalyticsHits} pure-analytics signals) — ${adjustments.join(
+        "; "
+      )}.`
+    );
+  } else if (transformationOverride.pureAnalyticsSafeguardBlockedOverride) {
+    parts.push(
+      `Pure-analytics safeguard fired (${transformationOverride.pureAnalyticsHits} analytics signals vs ${transformationOverride.transformationHits} transformation signals) — D_SUPPORT keeps the win; Track E not boosted.`
     );
   }
 

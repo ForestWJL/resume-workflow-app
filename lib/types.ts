@@ -39,6 +39,10 @@ export interface ScoreBreakdown {
   trackDOwnershipRestrictionApplied?: boolean;
   // True when the analyst-title guard (Rule 5) penalised D_SUPPORT.
   analystTitleGuardApplied?: boolean;
+  // True when the Transformation Override (Track E) adjusted this track's
+  // raw score — E_TRANSFORMATION boost, or D_SUPPORT / A_PMC / A_REGULATED
+  // penalty.
+  transformationOverrideApplied?: boolean;
 }
 
 /** Operations / coordination / execution-ownership override (Rules 1, 2, 4). */
@@ -66,6 +70,26 @@ export interface AnalystTitleGuardDecision {
   trackDTitleShare: number;
   bestCompetingFunctional: number;
   trackDPenaltyApplied: boolean;
+}
+
+/** Transformation Override (Track E vs D_SUPPORT / SC anchors). */
+export interface TransformationOverrideDecision {
+  active: boolean;
+  transformationHits: number;
+  pureAnalyticsHits: number;
+  matchedTransformationSignals: string[];
+  matchedPureAnalyticsSignals: string[];
+  // True when pure-analytics signals dominated and Track E was deliberately
+  // NOT boosted — D_SUPPORT keeps the win.
+  pureAnalyticsSafeguardBlockedOverride: boolean;
+  // True when the regulated-clinical safeguard blocks the A_REGULATED penalty
+  // (Almac-shape regulated supply still wins despite some transformation language).
+  regulatedSafeguardBlockedARegulated: boolean;
+  regulatedHits: number;
+  trackEBoosted: boolean;
+  trackDPenalised: boolean;
+  trackAPmcPenalised: boolean;
+  trackARegulatedPenalised: boolean;
 }
 
 /** JD profile boosts applied before support-shape / D_SUPPORT guard (classifier). */
@@ -157,6 +181,8 @@ export interface RoutingResult {
   trackDOwnership?: TrackDOwnershipDecision;
   /** Analyst-title guard for D_SUPPORT (Rule 5). */
   analystTitleGuard?: AnalystTitleGuardDecision;
+  /** Transformation Override — adjudicates Track E vs D_SUPPORT / SC anchors. */
+  transformationOverride?: TransformationOverrideDecision;
   /** UI row for decision chip (optional for older saved routings). */
   uiDecision?: {
     label: Recommendation;

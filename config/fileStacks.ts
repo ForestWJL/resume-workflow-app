@@ -64,24 +64,30 @@ fileName: "Forest_Wang_RegionalSCAnalyst_Terumo_v2.docx",
 },
 },
 
-// ===== AB_HYBRID — planning + procurement hybrid =====
+// ===== AB_HYBRID — Operations / Logistics / Coordination =====
 AB_HYBRID: {
 formatTemplate: {
-label: "Format Template",
-fileName: "Forest_Wang_DistributionPlanner_CytivaV2.docx",
+label: "Approved Track AB Base Resume",
+fileName: "Supply Chain Operations Specialist.docx",
+note: "Primary structural and wording anchor for Track AB tailoring (operations execution · logistics coordination · inventory control · order fulfilment · cross-functional ownership).",
 },
 contentMaster: {
 label: "Content Master",
-fileName: "Supply Chain Operations Specialist.docx",
+fileName: "ForestWang_PharmaSC.docx",
+note: "Deeper operational bullets (Sanofi raw-material coordination · Cainiao 3PL exception management · YCH key-account cost-to-serve · CWT process redesign · Ryder cross-functional planning). Pull operational ownership phrasing — do NOT pull Planner-only identity from this file.",
 },
 evidenceBank: {
 label: "Experience Evidence Bank",
 fileName: "Sanofi_Interview_Final_Condensed.docx",
+note: "Interview-style operational scope + metrics. Extract and rephrase — do not copy directly.",
 },
 supportingReference: {
-label: "Supporting Reference",
+label: "Supplementary Operations Reference",
 fileName: "Forest_Wang_PurchasingPlanning_DoodleLabs_v2.docx",
+note: "Cross-track purchasing-planning ops context. Pull only when the JD has procurement-adjacent coordination scope.",
 },
+trackNote:
+"Use the approved Track AB base first; lean on the content master (PharmaSC) for ownership-flavored bullets. DO NOT pull phrasing from ForestWang_TrackD_DataAnalyst_MASTER.docx (analyst drift) or Forest_Wang_TrackE_SupplyChainBusinessAI.docx (transformation drift). AB_HYBRID is operations ownership, not analyst, not transformation.",
 },
 
 // ===== AC_DEMAND — demand / replenishment / forecasting =====

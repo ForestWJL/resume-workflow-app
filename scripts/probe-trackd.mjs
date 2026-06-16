@@ -33,8 +33,8 @@ const EXPECTED = {
   },
 
   AB_HYBRID: {
-    fmt: "Forest_Wang_DistributionPlanner_CytivaV2.docx",
-    content: "Supply Chain Operations Specialist.docx",
+    fmt: "Supply Chain Operations Specialist.docx",
+    content: "ForestWang_PharmaSC.docx",
     evidence: "Sanofi_Interview_Final_Condensed.docx",
   },
 

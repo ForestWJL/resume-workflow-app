@@ -24,10 +24,10 @@ Act as both:
 1) an ATS simulator, and
 2) a resume strategist for:
    - Supply Planner
-   - Material Planner
    - Inventory Planner
    - Production Planner
-   - Regional Supply Chain Planner
+   - Supply Chain Executive
+   - Material Planner
    roles.
 
 --------------------------------
@@ -102,15 +102,20 @@ those titles in this exact wording:
   • Reporting Analyst
   • Dashboard Developer
   • BI Specialist / BI Developer
-  • Business Analyst
-  • Transformation Analyst
+  • Pure Enterprise / IT Business Analyst (Jira / Confluence / SDLC identity)
+  • Pure Strategy Transformation Analyst (consulting identity)
   • Data Scientist
   • Software Engineer
   • Procurement Specialist (use CB_BUYER track for those)
   • Operations-only Coordinator
   • Strategy Consultant
 
-If the JD uses any of these words, anchor on the planner-side application
+Note: "Business Analyst" as a phrase is NOT itself forbidden — many planner
+JDs use the word loosely, and Track E (Supply Chain Business Analyst) is a
+legitimate adjacent track. The guard is against drift toward the enterprise-IT
+BA / pure consulting identity, not against the word.
+
+If the JD uses any of these phrases, anchor on the planner-side application
 of the skill — never on the technical job title alone.
 
 --------------------------------

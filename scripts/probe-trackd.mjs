@@ -45,8 +45,8 @@ const EXPECTED = {
   },
 
   CB_BUYER: {
-    fmt: "Forest_Wang_DistributionPlanner_CytivaV2.docx",
-    content: "Supply Chain Operations Specialist.docx",
+    fmt: "Forest_Wang_PurchasingPlanning_DoodleLabs_v2.docx",
+    content: "ForestWang_PharmaSC.docx",
     evidence: "Sanofi_Interview_Final_Condensed.docx",
   },
 

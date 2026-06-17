@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -35,6 +35,9 @@ import { PROMPTS } from "@/config/prompts";
 import type { RoutingResult } from "@/lib/types";
 import { truncate } from "@/lib/utils";
 
+// P1 — JD draft persistence. Single localStorage key, scoped to this page.
+const JD_DRAFT_STORAGE_KEY = "rwa:screening:jdDraft";
+
 export default function RouterPage() {
   const [jd, setJd] = useState("");
   const [result, setResult] = useState<RoutingResult | null>(null);
@@ -43,10 +46,48 @@ export default function RouterPage() {
   // the history after mount via useEffect.
   const [history, setHistory] = useState<RoutingResult[]>([]);
   const [overrideOpen, setOverrideOpen] = useState(false);
+  const jdHydratedRef = useRef(false);
 
   useEffect(() => {
     setHistory(getRoutingResults());
   }, []);
+
+  // P1 — JD draft hydration + persistence.
+  //
+  // First effect run: read the saved draft from localStorage and seed `jd`.
+  //   Initial `useState("")` keeps the server-rendered HTML and the first
+  //   client render identical → no React hydration warning. The actual
+  //   localStorage read happens inside this effect (post-mount, client-only).
+  //
+  // Subsequent runs: write the current `jd` back to localStorage on every
+  // change (or remove the entry once `jd` is empty). A ref-based "first
+  // run" flag avoids the classic race where the persistence write fires
+  // before the hydration read and overwrites the saved draft with "".
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (!jdHydratedRef.current) {
+      jdHydratedRef.current = true;
+      try {
+        const saved = window.localStorage.getItem(JD_DRAFT_STORAGE_KEY);
+        if (saved) setJd(saved);
+      } catch {
+        // localStorage can throw in private mode / quota-blocked browsers;
+        // a missing draft is not a fatal error — fall through silently.
+      }
+      return;
+    }
+
+    try {
+      if (jd.length > 0) {
+        window.localStorage.setItem(JD_DRAFT_STORAGE_KEY, jd);
+      } else {
+        window.localStorage.removeItem(JD_DRAFT_STORAGE_KEY);
+      }
+    } catch {
+      // Swallow quota / availability errors — persistence is best-effort.
+    }
+  }, [jd]);
 
   const canRun = jd.trim().length >= 40;
 
@@ -89,6 +130,20 @@ export default function RouterPage() {
     deleteRoutingResult(id);
     setHistory(getRoutingResults());
     if (result?.id === id) setResult(null);
+  };
+
+  // P1 — Clear button must clear textarea AND localStorage. The
+  // persistence effect would also remove the entry once `jd` becomes "",
+  // but the explicit removeItem here makes the requirement provable
+  // independent of effect timing.
+  const handleClearJd = () => {
+    setJd("");
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.removeItem(JD_DRAFT_STORAGE_KEY);
+    } catch {
+      // localStorage may be unavailable — best-effort cleanup.
+    }
   };
 
   const recColor = useMemo(() => {
@@ -152,7 +207,7 @@ export default function RouterPage() {
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
-                onClick={() => setJd("")}
+                onClick={handleClearJd}
                 disabled={!jd}
               >
                 Clear

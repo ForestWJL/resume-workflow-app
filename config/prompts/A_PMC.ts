@@ -199,11 +199,17 @@ EXPERIENCE ANCHORS
 
 Use these where relevant:
 
-- Sanofi → raw material supply planning for 5 overseas API plants,
-  24-month rolling demand plan, FEFO + shelf-life discipline, 45 consecutive
-  months zero raw material write-offs, SAP MM PO execution, Local Material
-  Master Data Expert (Sanofi France certified), supply continuity ownership,
+- Sanofi → site-level supply planning across 5 overseas API plants —
+  end-to-end scope spanning production scheduling, finished-goods planning,
+  annual production allocation planning, 24-month demand planning, and
+  production-requirement alignment with raw-material supply planning. Owned
+  supply continuity for the regulated portfolio: FEFO + shelf-life
+  discipline, 45 consecutive months zero raw-material write-offs, SAP MM
+  PO execution, Local Material Master Data Expert (Sanofi France certified),
   cross-functional decision support to QA / Production / Finance.
+  Use this anchor for full-scope supply-planner JDs (production-scheduling
+  / FG-planning / allocation-planning / S&OP-cycle / supply-continuity
+  ownership) — not only for raw-material-planning JDs.
 
 - Ryder → BOM-based procurement, production planning for 10 HP lines,
   capacity forecasts, PO raising and follow-up in SAP MM, USD 100K+/month

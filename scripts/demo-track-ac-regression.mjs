@@ -154,9 +154,67 @@ Requirements
 - Strong Power BI, Excel, SAP APO / IBP
 - Forecast accuracy / inventory-availability literacy`,
   },
+  // ─── V2 industry-branch JDs (NEW) ───────────────────────────────────
+  {
+    name: "JD 6 · Supply Chain Specialist Demand & Inventory Planning (Medochemie pharma shape)",
+    expected: "AC_DEMAND",
+    industryBranchExpected: "PHARMA / REGULATED",
+    jd: `Supply Chain Specialist (Demand & Inventory Planning)
+Pharmaceutical Manufacturing - Singapore
+
+The Supply Chain Specialist will lead monthly demand and forecast
+discussions across the regional pharmaceutical portfolio and own
+inventory projection, risk management, and optimization.
+
+Responsibilities
+- Lead monthly demand discussion across product portfolio
+- Lead forecast discussion with commercial and supply teams
+- Develop and maintain inventory projection across the portfolio
+- Manage inventory risk through cross-functional review cadence
+- Drive inventory optimization (DOH, slow-mover, excess control)
+- Maintain open-order visibility across raw materials and finished goods
+- Drive demand-supply alignment across manufacturing plants
+- Coordinate PO planning and replenishment cycles
+- Lead cross-functional inventory reviews with QA, Production, and Finance
+- Maintain forecast accuracy and surface variance drivers
+- Govern safety stock and order point cadence under regulated lead time
+
+Requirements
+- 3-5 years pharma / regulated demand and inventory planning background
+- Strong SAP MM, SAP APO/IBP, or equivalent ERP discipline
+- FEFO / shelf-life governance discipline
+- Cross-functional review and stakeholder coordination experience`,
+  },
+  {
+    name: "JD 7 · FMCG Demand Planner (FMCG branch sanity check)",
+    expected: "AC_DEMAND",
+    industryBranchExpected: "FMCG / RETAIL",
+    jd: `FMCG Demand Planner
+Consumer Goods - Singapore
+
+Drive monthly demand forecasting and inventory planning across the
+regional FMCG portfolio.
+
+Responsibilities
+- Develop monthly statistical demand forecasts at SKU / customer level
+- Lead promotion forecast loading and campaign uplift modelling
+- Analyse sell-through and depletion data across key accounts
+- Coordinate omni-channel inventory and on-shelf availability
+- Drive replenishment cadence with key accounts and RDCs
+- Surface inventory exception risks in monthly S&OP cycle
+- Lead forecast accuracy improvement through statistical methods
+- Coordinate with sales, marketing, and supply planning
+- Maintain forecast inputs in SAP APO / IBP / planning systems
+
+Requirements
+- 3-5 years FMCG demand planning experience
+- Sell-through / depletion / promotion forecasting experience
+- SAP APO / IBP / Kinaxis / forecasting tool background
+- S&OP cycle and key-account stakeholder coordination`,
+  },
   // ─── Boundary checks ─────────────────────────────────────────────────
   {
-    name: "JD 6 · Procurement Executive (should NOT win AC)",
+    name: "JD 8 · Procurement Executive (should NOT win AC)",
     expected: "CB_BUYER",
     jd: `Procurement Executive
 Singapore
@@ -174,7 +232,7 @@ Requirements
 - SAP MM and contract management discipline`,
   },
   {
-    name: "JD 7 · Assistant Logistics Manager (should NOT win AC)",
+    name: "JD 9 · Assistant Logistics Manager (should NOT win AC)",
     expected: "AB_HYBRID",
     jd: `Assistant Logistics Manager
 Singapore
@@ -195,7 +253,7 @@ Requirements
 - 5+ years logistics operations experience with team leadership background`,
   },
   {
-    name: "JD 8 · Production Planner (Anradus shape, should NOT win AC)",
+    name: "JD 10 · Production Planner (Anradus shape, should NOT win AC)",
     expected: "A_PMC",
     jd: `Production Planner
 Singapore
@@ -215,7 +273,7 @@ Requirements
 - Manufacturing environment experience`,
   },
   {
-    name: "JD 9 · Supply Chain Management Analyst (should NOT win AC)",
+    name: "JD 11 · Supply Chain Management Analyst (should NOT win AC)",
     expected: "D_SUPPORT",
     jd: `Supply Chain Management Analyst
 Singapore
@@ -242,7 +300,7 @@ Requirements
 - Stakeholder-facing reporting experience`,
   },
   {
-    name: "JD 10 · SC Business Analyst (should NOT win AC)",
+    name: "JD 12 · SC Business Analyst (should NOT win AC)",
     expected: "E_TRANSFORMATION",
     jd: `Supply Chain Business Analyst
 We are looking for a Supply Chain Business Analyst to lead digital transformation, AI adoption and process improvement across our operations.
@@ -263,7 +321,7 @@ Requirements
 
 // ─── Demand Planner & Buyer hybrid health check (HELIOS shape) ──────────
 const HYBRID_JD = {
-  name: "JD 11 · Demand Planner & Buyer (HELIOS hybrid health check)",
+  name: "JD 13 · Demand Planner & Buyer (HELIOS hybrid health check)",
   jd: `Demand Planner and Buyer
 HELIOS Singapore
 
@@ -314,9 +372,40 @@ for (const c of JDS) {
   if (r.selectedTrack === "AC_DEMAND") {
     const pkg = getPromptPackage(r.selectedTrack, r.variantId);
     const checks = [
-      ["Demand Forecasting First priority", "Demand Forecasting First"],
-      ["Replenishment Planning Second priority", "Replenishment Planning Second"],
-      ["Inventory Availability Third priority", "Inventory Availability Third"],
+      // V2 pillar labels (replacing V1)
+      ["V2 pillar 1: Demand Planning + Forecasting First", "Demand Planning + Forecasting First"],
+      ["V2 pillar 2: Inventory Planning + Availability Second", "Inventory Planning + Availability Second"],
+      ["V2 pillar 3: Replenishment + Demand-Supply Alignment Third", "Replenishment + Demand-Supply Alignment Third"],
+      // V2 INDUSTRY CONTEXT BRANCH
+      ["INDUSTRY CONTEXT BRANCH section", "INDUSTRY CONTEXT BRANCH"],
+      ["Pharma branch", "PHARMA / REGULATED branch"],
+      ["FMCG branch", "FMCG / RETAIL / OMNI-CHANNEL branch"],
+      ["Medtech branch", "MEDTECH / MEDICAL DEVICE branch"],
+      ["Industrial branch", "INDUSTRIAL / ELECTRONICS / GENERAL B2B branch"],
+      ["Unmarked branch", "UNMARKED / GENERAL branch"],
+      // V2 Sanofi credibility duplication (pharma branch leverage)
+      ["Sanofi 45 consecutive months zero write-off", "45 consecutive months"],
+      ["Sanofi 5 manufacturing plants explicit", "5 overseas API"],
+      // V2 inventory-planning scope
+      ["Safety stock + order point governance", "Safety stock + order point governance"],
+      ["Lead time governance", "Lead time governance"],
+      ["Inventory risk management", "Inventory risk management"],
+      ["Inventory projection", "Inventory projection"],
+      ["Cross-functional inventory + supply reviews", "Cross-functional inventory + supply reviews"],
+      // V2 inventory-planning verbs
+      ["Verb whitelist NEW (Sized)", "Sized"],
+      ["Verb whitelist NEW (Governed)", "Governed"],
+      ["Verb whitelist NEW (Surfaced)", "Surfaced"],
+      // V2 YCH refacet
+      ["YCH refacet (inventory performance reviews)", "inventory performance reviews"],
+      // V2 Local Material Master Data Expert as SUPPORTING credential (NOT pillar)
+      ["Local Material Master Data Expert mentioned", "Local Material Master Data Expert"],
+      ["Local Material Master Data Expert NOT a pillar", "NEVER as identity pillar"],
+      // V2 Promotion DEMOTED to FMCG branch only
+      ["Promotion theme demoted to FMCG branch", "promotion / launch / campaign support (FMCG branch only)"],
+      // V2 role list expansion
+      ["Role list: Supply Chain Specialist", "Supply Chain Specialist"],
+      // Preserved V1 checks
       ["Planner Ownership Rule present", "PLANNER OWNERSHIP RULE"],
       ["JD Alignment Rule present", "JD ALIGNMENT RULE"],
       ["Cytiva base resume named", "Forest_Wang_DistributionPlanner_CytivaV2.docx"],
@@ -325,11 +414,12 @@ for (const c of JDS) {
       ["Watsons supporting reference named", "Forest_Wang_SeniorSCExec_Watsons_v3.docx"],
       ["Track A PharmaSC DO NOT USE guard", "ForestWang_PharmaSC.docx"],
       ["Track CB DoodleLabs DO NOT USE guard", "Forest_Wang_PurchasingPlanning_DoodleLabs_v2.docx"],
+      ["Track D OperationsAnalytics DO NOT USE guard", "Forest_Wang_TrackD_OperationsAnalytics.docx"],
       ["Track E DO NOT USE guard", "Forest_Wang_TrackE_SupplyChainBusinessAI.docx"],
       ["Verb whitelist (Forecasted)", "Forecasted"],
       ["Verb whitelist (Replenished)", "Replenished"],
       ["Verb whitelist (Aligned)", "Aligned"],
-      ["Anti-deflation guard (junior data analyst)", "junior demand analyst"],
+      ["Anti-deflation guard (junior demand analyst)", "junior demand analyst"],
       ["Anti-drift guard (Negotiated → CB_BUYER)", "Negotiated"],
       ["Anti-drift guard (MRP → A_PMC)", "Produced MRP plans"],
       ["Forbidden Production Planner identity", "Production Planner"],
